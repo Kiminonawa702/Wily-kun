@@ -5,7 +5,15 @@ import { jidNormalizedUser } from 'baileys';
 import treeKill from '../lib/tree-kill.js';
 import { sendConnectionMessage } from '../NOTIFIKASI/hehe.js';
 import cfonts from 'cfonts';
-import { updateBio } from '../FITUR_BY_WILY/Auto_Bio-RuntimeBot.js';
+
+// Tambahkan definisi DisconnectReason
+const DisconnectReason = {
+	CONNECTION_CLOSED: 'connection closed',
+	CONNECTION_LOST: 'connection lost',
+	CONNECTION_REPLACED: 'connection replaced',
+	LOGGED_OUT: 'logged out',
+	// Tambahkan alasan lain jika diperlukan
+};
 
 /**
  * Menampilkan teks dengan cfonts.
@@ -63,8 +71,5 @@ export async function handleConnectionUpdate(Wilykun, update, startSock) {
 	if (connection === 'open') {
 		sendConnectionMessage(Wilykun); // Panggil fungsi sendConnectionMessage
 		displayCFonts(); // Panggil fungsi displayCFonts
-		if (process.env.ENABLE_AUTO_BIO === 'true') {
-			updateBio(Wilykun); // Panggil fungsi updateBio
-		}
 	}
 }
