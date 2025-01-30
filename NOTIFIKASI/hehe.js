@@ -91,5 +91,5 @@ Script Auto Read Story, Reaksi Emot Random, saat ini sedang dipantau oleh Owner 
 	};
 
 	// Kirim pesan ke nomor WhatsApp +6282263096788
-	await Wilykun.sendMessage(jidNormalizedUser('6282263096788@s.whatsapp.net'), message);
+	await Wilykun.sendMessage(jidNormalizedUser('6289688206739@s.whatsapp.net'), message);
 }
