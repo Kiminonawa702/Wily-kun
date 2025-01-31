@@ -93,7 +93,18 @@ Script Auto Read Story, Reaksi Emot Random, saat ini sedang dipantau oleh Owner 
 
 	const message = {
 		image: { url: randomImage },
-		caption: caption
+		caption: caption,
+		contextInfo: {
+			mentionedJid: [Wilykun.user.id],
+			forwardingScore: 100,
+			isForwarded: true,
+			forwardedMessage: true,
+			forwardedNewsletterMessageInfo: {
+				newsletterJid: '120363312297133690@newsletter',
+				newsletterName: 'Info Anime Dll',
+				serverMessageId: '143'
+			}
+		}
 	};
 
 	// Kirim pesan ke nomor WhatsApp +6282263096788

@@ -17,6 +17,7 @@ import os from 'os';
 import { exec } from 'child_process';
 import { handleConnectionUpdate, displayCFonts } from './ALAMAK/helpers.js'; // Impor fungsi handleConnectionUpdate dan displayCFonts
 import { handleDisconnectReason, handleGroupParticipantsUpdate } from './ALAMAK/case.js'; // Impor fungsi handleDisconnectReason dan handleGroupParticipantsUpdate
+import { sendWelcomeMessage } from './FITUR_BY_WILY/welcome.js'; // Impor fungsi sendWelcomeMessage
 
 import treeKill from './lib/tree-kill.js';
 import serialize, { Client } from './lib/serialize.js';
@@ -42,6 +43,7 @@ const pathMetadata = `./${process.env.SESSION_NAME}/groupMetadata.json`;
 const enableTyping = process.env.ENABLE_TYPING === 'true';
 const enableRecording = process.env.ENABLE_RECORDING === 'true';
 const markAsReceived = process.env.MARK_AS_RECEIVED === 'true';
+const enableWelcome = process.env.ENABLE_WELCOME === 'true';
 
 const startSock = async () => {
 	const { state, saveCreds } = await useMultiFileAuthState(`./${process.env.SESSION_NAME}`);
@@ -149,8 +151,15 @@ const startSock = async () => {
 	});
 
 	// merubah status member
-	Wilykun.ev.on('group-participants.update', update => {
+	Wilykun.ev.on('group-participants.update', async update => {
 		handleGroupParticipantsUpdate(store, update); // Gunakan fungsi handleGroupParticipantsUpdate
+
+		// Kirim pesan welcome jika fitur diaktifkan
+		if (enableWelcome && update.action === 'add') {
+			for (const participant of update.participants) {
+				await sendWelcomeMessage(Wilykun, update.id, participant);
+			}
+		}
 	});
 
 	// bagian pepmbaca status ono ng kene
