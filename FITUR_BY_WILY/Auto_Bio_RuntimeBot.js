@@ -11,7 +11,7 @@ function getUptimeBot() {
 	const hours = Math.floor((uptime % (3600 * 24)) / 3600);
 	const minutes = Math.floor((uptime % 3600) / 60);
 	const seconds = Math.floor(uptime % 60);
-	return `${days} hari ${hours} jam ${minutes} menit ${seconds} detik`;
+	return `${days} hari 🗓️ ${hours} jam ⏰ ${minutes} menit ⏳ ${seconds} detik ⏱️`;
 }
 
 /**
@@ -21,6 +21,10 @@ function getUptimeBot() {
 export async function updateAutoBio(Wilykun) {
 	if (process.env.ENABLE_AUTO_BIO === 'true') {
 		const uptime = getUptimeBot();
-		await Wilykun.updateProfileStatus(`Bot berjalan selama: ${uptime}`);
+		try {
+			await Wilykun.updateProfileStatus(`🤖 Bot berjalan selama: ${uptime} `);
+		} catch (error) {
+			console.error('Failed to update profile status:', error);
+		}
 	}
 }

@@ -196,18 +196,21 @@ const startSock = async () => {
 		// write store
 		if (process.env.WRITE_STORE === 'true') store.writeToFile(`./${process.env.SESSION_NAME}/store.json`);
 
-		// untuk auto restart ketika RAM sisa 300MB
-		const memoryUsage = os.totalmem() - os.freemem();
+		// untuk auto restart ketika RAM sisa sesuai threshold di .env
+		if (process.env.AUTO_RESTART === 'true') {
+			const memoryUsage = os.totalmem() - os.freemem();
+			const autoRestartThreshold = parseFileSize(process.env.AUTO_RESTART_THRESHOLD || '300MB', false);
 
-		if (memoryUsage > os.totalmem() - parseFileSize(process.env.AUTO_RESTART, false)) {
-			await Wilykun.sendMessage(
-				jidNormalizedUser(Wilykun.user.id),
-				{ text: `penggunaan RAM mencapai *${formatSize(memoryUsage)}* waktunya merestart...` },
-				{ ephemeralExpiration: 24 * 60 * 60 * 1000 }
-			);
-			exec('npm run restart:pm2', err => {
-				if (err) return process.send('reset');
-			});
+			if (memoryUsage > os.totalmem() - autoRestartThreshold) {
+				await Wilykun.sendMessage(
+					jidNormalizedUser(Wilykun.user.id),
+					{ text: `penggunaan RAM mencapai *${formatSize(memoryUsage)}* waktunya merestart...` },
+					{ ephemeralExpiration: 24 * 60 * 60 * 1000 }
+				);
+				exec('npm run restart:pm2', err => {
+					if (err) return process.send('reset');
+				});
+			}
 		}
 
 		// Perbarui bio WhatsApp dengan waktu uptime bot

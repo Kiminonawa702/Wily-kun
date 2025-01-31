@@ -6,12 +6,14 @@ import dotenv from 'dotenv'; // Tambahkan ini untuk mengimpor dotenv
 
 dotenv.config(); // Load .env file
 
+const WISE_WORDS_URL = 'https://raw.githubusercontent.com/fawwaz37/random/refs/heads/main/bijak.txt'; // Tambahkan URL di sini
+
 /**
  * Mengambil kata-kata bijak dari URL.
  * @returns {Promise<string[]>} - Daftar kata-kata bijak.
  */
 async function getWiseWords() {
-	const response = await fetch('https://raw.githubusercontent.com/fawwaz37/random/refs/heads/main/bijak.txt');
+	const response = await fetch(WISE_WORDS_URL);
 	const text = await response.text();
 	return text.split('\n').map(line => line.trim()).filter(Boolean);
 }
@@ -47,21 +49,24 @@ export async function sendConnectionMessage(Wilykun) {
 
 	const features = {
 		'Auto Bio Runtime': process.env.ENABLE_AUTO_BIO === 'true' ? 'Aktif ✅' : 'Tidak Aktif ❌',
-		'Auto Typing': process.env.ENABLE_TYPING === 'true' ? 'Aktif ✅' : 'Tidak Aktif ❌',
 		'Auto Recording': process.env.ENABLE_RECORDING === 'true' ? 'Aktif ✅' : 'Tidak Aktif ❌',
+		'Auto Restart': process.env.AUTO_RESTART === 'true' ? 'Aktif ✅' : 'Tidak Aktif ❌',
+		'Auto Typing': process.env.ENABLE_TYPING === 'true' ? 'Aktif ✅' : 'Tidak Aktif ❌',
 		'Mark as Received': process.env.MARK_AS_RECEIVED === 'true' ? 'Aktif ✅' : 'Tidak Aktif ❌',
-		'Write Store': process.env.WRITE_STORE === 'true' ? 'Aktif ✅' : 'Tidak Aktif ❌',
-		'Self Mode': process.env.SELF === 'true' ? 'Aktif ✅' : 'Tidak Aktif ❌'
+		'Self Mode': process.env.SELF === 'true' ? 'Aktif ✅' : 'Tidak Aktif ❌',
+		'Write Store': process.env.WRITE_STORE === 'true' ? 'Aktif ✅' : 'Tidak Aktif ❌'
 	};
 
 	const activeFeatures = Object.entries(features)
 		.filter(([_, status]) => status === 'Aktif ✅')
 		.map(([name, status]) => `- ${name}: ${status}`)
+		.sort()
 		.join('\n');
 
 	const inactiveFeatures = Object.entries(features)
 		.filter(([_, status]) => status === 'Tidak Aktif ❌')
 		.map(([name, status]) => `- ${name}: ${status}`)
+		.sort()
 		.join('\n');
 
 	const activeFeatureCount = activeFeatures.split('\n').length;
@@ -70,7 +75,7 @@ export async function sendConnectionMessage(Wilykun) {
 	const caption = `
 ${Wilykun.user?.name} has Connected... 🤖
 -
-📅 Tanggal: ${formattedDate} 📅
+Tanggal: ${formattedDate} 📅
 -
 ${randomWiseWord} 💬
 -
