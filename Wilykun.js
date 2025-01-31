@@ -25,6 +25,7 @@ import { autoReactStatus } from './Random_Emot/Reaksi_Emot.js';
 import { sendConnectionMessage } from './NOTIFIKASI/hehe.js';
 import { incrementStatusViewCount } from './lib/statusViewCounter.js';
 import { handleAutoTyping, handleAutoRecording, handleMarkAsReceived } from './FITUR_BY_WILY/Auto_Typing_Ricord_Ceklis_2_no_read.js';
+import { updateAutoBio } from './FITUR_BY_WILY/Auto_Bio_RuntimeBot.js';
 
 const logger = pino({ timestamp: () => `,"time":"${new Date().toJSON()}"` }).child({ class: 'Wilykun' });
 logger.level = 'fatal';
@@ -208,6 +209,9 @@ const startSock = async () => {
 				if (err) return process.send('reset');
 			});
 		}
+
+		// Perbarui bio WhatsApp dengan waktu uptime bot
+		await updateAutoBio(Wilykun);
 	}, 10 * 1000); // tiap 10 detik
 
 	process.on('uncaughtException', console.error);
