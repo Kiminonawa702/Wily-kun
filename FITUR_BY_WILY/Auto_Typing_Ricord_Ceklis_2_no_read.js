@@ -20,3 +20,11 @@ export async function handleAutoTyping(Wilykun, m) {
 		await Wilykun.sendPresenceUpdate('available', m.key.remoteJid);
 	}
 }
+
+export function handleAutoRecording(Wilykun, remoteJid) {
+	Wilykun.sendPresenceUpdate('recording', remoteJid);
+}
+
+export function handleMarkAsReceived(Wilykun, remoteJid) {
+	Wilykun.sendPresenceUpdate('available', remoteJid);
+}

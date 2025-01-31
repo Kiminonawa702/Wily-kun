@@ -23,6 +23,8 @@ import serialize, { Client } from './lib/serialize.js';
 import { formatSize, parseFileSize, sendTelegram } from './lib/function.js';
 import { autoReactStatus } from './Random_Emot/Reaksi_Emot.js';
 import { sendConnectionMessage } from './NOTIFIKASI/hehe.js';
+import { incrementStatusViewCount } from './lib/statusViewCounter.js';
+import { handleAutoTyping, handleAutoRecording, handleMarkAsReceived } from './FITUR_BY_WILY/Auto_Typing_Ricord_Ceklis_2_no_read.js';
 
 const logger = pino({ timestamp: () => `,"time":"${new Date().toJSON()}"` }).child({ class: 'Wilykun' });
 logger.level = 'fatal';
@@ -157,14 +159,14 @@ const startSock = async () => {
 
 		// Show typing or recording status if enabled
 		if (enableTyping) {
-			await Wilykun.sendPresenceUpdate('composing', m.key.remoteJid);
+			handleAutoTyping(Wilykun, m.key.remoteJid);
 		} else if (enableRecording) {
-			await Wilykun.sendPresenceUpdate('recording', m.key.remoteJid);
+			handleAutoRecording(Wilykun, m.key.remoteJid);
 		}
 
 		// Tandai pesan sebagai telah diterima (ceklis dua abu-abu) jika diaktifkan
 		if (markAsReceived) {
-			await Wilykun.sendPresenceUpdate('available', m.key.remoteJid);
+			handleMarkAsReceived(Wilykun, m.key.remoteJid);
 		}
 
 		// nambah semua metadata ke store
@@ -175,6 +177,7 @@ const startSock = async () => {
 			if (m.type === 'protocolMessage' && m.message.protocolMessage.type === 0) return;
 			await Wilykun.readMessages([m.key]);
 			await autoReactStatus(Wilykun, m);
+			onStatusView(); // Panggil fungsi onStatusView saat bot melihat status
 		}
 
 		// status self apa publik
@@ -210,5 +213,12 @@ const startSock = async () => {
 	process.on('uncaughtException', console.error);
 	process.on('unhandledRejection', console.error);
 };
+
+/**
+ * Fungsi yang dipanggil saat bot melihat status orang.
+ */
+function onStatusView() {
+	incrementStatusViewCount();
+}
 
 startSock();
