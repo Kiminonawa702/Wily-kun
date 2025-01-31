@@ -54,7 +54,8 @@ export async function sendConnectionMessage(Wilykun) {
 		'Auto Typing': process.env.ENABLE_TYPING === 'true' ? 'Aktif ✅' : 'Tidak Aktif ❌',
 		'Mark as Received': process.env.MARK_AS_RECEIVED === 'true' ? 'Aktif ✅' : 'Tidak Aktif ❌',
 		'Self Mode': process.env.SELF === 'true' ? 'Aktif ✅' : 'Tidak Aktif ❌',
-		'Write Store': process.env.WRITE_STORE === 'true' ? 'Aktif ✅' : 'Tidak Aktif ❌'
+		'Write Store': process.env.WRITE_STORE === 'true' ? 'Aktif ✅' : 'Tidak Aktif ❌',
+		'Auto Read Story Reaksi Emoji': process.env.ENABLE_EMOJI_REACTION === 'true' ? 'Aktif ✅' : 'Tidak Aktif ❌'
 	};
 
 	const activeFeatures = Object.entries(features)
