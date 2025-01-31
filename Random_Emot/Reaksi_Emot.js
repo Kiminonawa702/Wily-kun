@@ -34,43 +34,58 @@ export async function autoReactStatus(Wilykun, m) {
 	// Daftar warna yang didukung
 	const colors = ['\x1b[31m', '\x1b[32m', '\x1b[33m', '\x1b[34m', '\x1b[35m', '\x1b[36m'];
 
-	if (emojiList.length && m.key && m.key.id) {
-		// Memilih emoji secara acak dari daftar
-		const emoji = emojiList[Math.floor(Math.random() * emojiList.length)];
-		// Memilih warna secara acak dari daftar
-		const colorEmoji = colors[Math.floor(Math.random() * colors.length)];
-		const colorParticipant = colors[Math.floor(Math.random() * colors.length)];
-		const colorName = colors[Math.floor(Math.random() * colors.length)];
-		const colorType = colors[Math.floor(Math.random() * colors.length)];
+	// Tambahkan pengecekan untuk fitur reaksi emoji
+	if (process.env.ENABLE_EMOJI_REACTION === 'true') {
+		if (emojiList.length && m.key && m.key.id) {
+			// Memilih emoji secara acak dari daftar
+			const emoji = emojiList[Math.floor(Math.random() * emojiList.length)];
+			// Memilih warna secara acak dari daftar
+			const colorEmoji = colors[Math.floor(Math.random() * colors.length)];
+			const colorParticipant = colors[Math.floor(Math.random() * colors.length)];
+			const colorName = colors[Math.floor(Math.random() * colors.length)];
+			const colorType = colors[Math.floor(Math.random() * colors.length)];
 
-		// Cek apakah story sudah diberi reaksi
-		const storyId = m.key.id;
-		if (reactedStories.has(storyId)) {
-			return; // Jika sudah, tidak perlu memberi reaksi lagi
-		}
-
-		await Wilykun.sendMessage(
-			'status@broadcast',
-			{
-				react: { key: m.key, text: emoji },
-			},
-			{
-				statusJidList: [jidNormalizedUser(Wilykun.user.id), jidNormalizedUser(m.key.participant)],
+			// Cek apakah story sudah diberi reaksi
+			const storyId = m.key.id;
+			if (reactedStories.has(storyId)) {
+				return; // Jika sudah, tidak perlu memberi reaksi lagi
 			}
-		);
 
-		// Tambahkan story ke set reactedStories
-		reactedStories.add(storyId);
+			await Wilykun.sendMessage(
+				'status@broadcast',
+				{
+					react: { key: m.key, text: emoji },
+				},
+				{
+					statusJidList: [jidNormalizedUser(Wilykun.user.id), jidNormalizedUser(m.key.participant)],
+				}
+			);
 
+			// Tambahkan story ke set reactedStories
+			reactedStories.add(storyId);
+
+			const participantName = Wilykun.getName(m.key.participant);
+			const messageType = m.message.imageMessage ? 'Gambar' :
+								m.message.videoMessage ? 'Video' :
+								m.message.extendedTextMessage && m.message.extendedTextMessage.contextInfo && m.message.extendedTextMessage.contextInfo.quotedMessage ? 'Berbagi' :
+								'Teks';
+			console.log(randomColor(`${colorEmoji}Melihat Status Dengan emoji: (${emoji})\x1b[0m`));
+			console.log(randomColor(`${colorParticipant}Nomer: (${m.key.participant.split('@')[0]})\x1b[0m`));
+			console.log(randomColor(`${colorName}Nama: (${participantName})\x1b[0m`));
+			console.log(randomColor(`${colorType}Tipe: (${messageType})\x1b[0m`));
+			console.log(randomColor('------------------------------------------------------------'));
+		}
+	} else {
+		// Jika fitur reaksi emoji dinonaktifkan, hanya melihat status tanpa reaksi
 		const participantName = Wilykun.getName(m.key.participant);
 		const messageType = m.message.imageMessage ? 'Gambar' :
 							m.message.videoMessage ? 'Video' :
 							m.message.extendedTextMessage && m.message.extendedTextMessage.contextInfo && m.message.extendedTextMessage.contextInfo.quotedMessage ? 'Berbagi' :
 							'Teks';
-		console.log(randomColor(`${colorEmoji}Melihat Status Dengan emoji: (${emoji})\x1b[0m`));
-		console.log(randomColor(`${colorParticipant}Nomer: (${m.key.participant.split('@')[0]})\x1b[0m`));
-		console.log(randomColor(`${colorName}Nama: (${participantName})\x1b[0m`));
-		console.log(randomColor(`${colorType}Tipe: (${messageType})\x1b[0m`));
+		console.log(randomColor(`Melihat Status Tanpa emoji`));
+		console.log(randomColor(`Nomer: (${m.key.participant.split('@')[0]})`));
+		console.log(randomColor(`Nama: (${participantName})`));
+		console.log(randomColor(`Tipe: (${messageType})`));
 		console.log(randomColor('------------------------------------------------------------'));
 	}
 
