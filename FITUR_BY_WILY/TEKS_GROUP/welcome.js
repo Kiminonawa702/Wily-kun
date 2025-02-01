@@ -7,10 +7,10 @@ const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
 /**
- * Fungsi untuk mengirim pesan welcome saat ada anggota baru yang masuk ke grup.
- * @param {import('baileys').WASocket} Wilykun - Instance WASocket.
- * @param {string} groupId - ID grup.
- * @param {string} participant - ID peserta yang baru masuk.
+ * Fungsi untuk mencoba kembali dengan delay jika terjadi error rate limit.
+ * @param {Function} fn - Fungsi yang akan dicoba kembali.
+ * @param {number} retries - Jumlah maksimal percobaan.
+ * @param {number} delay - Waktu delay antara percobaan dalam milidetik.
  */
 async function retryWithDelay(fn, retries = 3, delay = 1000) {
 	for (let i = 0; i < retries; i++) {
