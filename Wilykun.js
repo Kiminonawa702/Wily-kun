@@ -234,7 +234,11 @@ const startSock = async () => {
 		}
 
 		// Perbarui bio WhatsApp dengan waktu uptime bot
-		await updateAutoBio(Wilykun);
+		if (Wilykun.ws.readyState === Wilykun.ws.OPEN) {
+			await updateAutoBio(Wilykun);
+		} else {
+			console.error('Connection is not open. Skipping bio update.');
+		}
 	}, 10 * 1000); // tiap 10 detik
 
 	process.on('uncaughtException', console.error);
