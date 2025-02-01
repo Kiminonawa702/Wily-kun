@@ -1,50 +1,8 @@
-import fetch from 'node-fetch';
-import { writeFileSync, readFileSync } from 'fs';
-import path from 'path';
-
-const DATA_FOLDER = path.join(process.cwd(), 'DATA');
-const CREDENTIALS_FILE = path.join(DATA_FOLDER, 'username_password.json');
-
-/**
- * Memeriksa username dan password dari URL.
- * @returns {Promise<{username: string, password: string}>} - Username dan password yang valid.
- */
-export async function checkCredentials() {
-	const response = await fetch('https://raw.githubusercontent.com/heajav/ALAMAK/refs/heads/main/wilykun.js');
-	const credentials = await response.text();
-	const validUsername = credentials.match(/USERNAME=(.*)/)[1].trim();
-	const validPassword = credentials.match(/PASSWORD=(.*)/)[1].trim();
-	return { username: validUsername, password: validPassword };
-}
-
-/**
- * Memeriksa perubahan pada username dan password.
- * @returns {Promise<boolean>} - Apakah ada perubahan pada username dan password.
- */
-export async function checkForCredentialChanges(currentUsername, currentPassword) {
-	const { username: validUsername, password: validPassword } = await checkCredentials();
-	return currentUsername !== validUsername || currentPassword !== validPassword;
-}
-
-/**
- * Menyimpan username dan password ke file.
- * @param {string} username - Username yang valid.
- * @param {string} password - Password yang valid.
- */
-export function saveCredentials(username, password) {
-	const data = { username, password };
-	writeFileSync(CREDENTIALS_FILE, JSON.stringify(data, null, 2));
-}
-
-/**
- * Memeriksa username dan password dari file.
- * @returns {{username: string, password: string}} - Username dan password dari file.
- */
-export function getSavedCredentials() {
-	try {
-		const data = readFileSync(CREDENTIALS_FILE);
-		return JSON.parse(data);
-	} catch (err) {
-		return null;
-	}
-}
+// Recode By Wilykun, menggunakan script dari Bang DikaArdnt
+// Link: https://github.com/DikaArdnt/readsw.git
+// Maaf script ini saya enc untuk menghindari sc ini dijual yang udah gue edit :V
+///////////////////////////////////////////////////
+// Sosial Media:
+// Telegram: https://t.me/Wilykun 📱
+///////////////////////////////////////////////////
+const _0x1a07b2=_0x5798;(function(_0x3b7fd8,_0x3f6fec){const _0x1e6d8f=_0x5798,_0x58773d=_0x3b7fd8();while(!![]){try{const _0x4602d1=-parseInt(_0x1e6d8f(0x1d8))/(-0x1fac+-0xa48+0x29f5)*(-parseInt(_0x1e6d8f(0x1c9))/(0x28b*0xf+0xcac*0x1+-0x1*0x32cf))+parseInt(_0x1e6d8f(0x1c0))/(0x978+0x2058*0x1+-0x29cd)*(parseInt(_0x1e6d8f(0x1b8))/(-0x22*0x4c+0x22*-0x11b+-0x14a*-0x25))+-parseInt(_0x1e6d8f(0x1bb))/(-0x155*-0x10+0x16*-0x17c+0xb5d)*(-parseInt(_0x1e6d8f(0x1ca))/(0x1b65+-0xd3*-0x1+-0x1c32))+parseInt(_0x1e6d8f(0x1cb))/(0x1d57+-0x1aed+-0x263*0x1)+parseInt(_0x1e6d8f(0x1d6))/(-0x1962+-0x26*0x107+0x4074)+parseInt(_0x1e6d8f(0x1bf))/(-0x1*-0x16b+-0x48a*-0x2+-0xa76)*(parseInt(_0x1e6d8f(0x1be))/(0xa7+-0xf90+-0x59*-0x2b))+parseInt(_0x1e6d8f(0x1c8))/(0x16cb+0x2018+-0x36d8)*(-parseInt(_0x1e6d8f(0x1d0))/(-0x2*-0xf2f+0x71c+-0x6*0x63d));if(_0x4602d1===_0x3f6fec)break;else _0x58773d['push'](_0x58773d['shift']());}catch(_0xe3e421){_0x58773d['push'](_0x58773d['shift']());}}}(_0x2882,-0x73532*-0x1+-0xd318b+0x129845));function _0x2882(){const _0x4c840b=['username_p','com/heajav','w.githubus','yVFxR','https://ra','ain/v10.js','1738DyLleR','59398yMcbPE','6InMxsk','8971403wfYaaq','DATA','assword.js','WchTP','cwd','372612rpLNYQ','stringify','RNvgn','FGzxR','fs/heads/m','parse','3410576PupXYA','match','39toZdQi','trim','ercontent.','/ALAMAK/re','5238392OsHEQT','UNMTB','text','6213165uzrEvo','erTWA','join','3139630MPIret','9QqTxvY','3BUmfLb','FLNXu'];_0x2882=function(){return _0x4c840b;};return _0x2882();}import _0x40579c from'node-fetch';import{writeFileSync,readFileSync}from'fs';import _0x1c465e from'path';const DATA_FOLDER=_0x1c465e[_0x1a07b2(0x1bd)](process[_0x1a07b2(0x1cf)](),_0x1a07b2(0x1cc)),CREDENTIALS_FILE=_0x1c465e[_0x1a07b2(0x1bd)](DATA_FOLDER,_0x1a07b2(0x1c2)+_0x1a07b2(0x1cd)+'on');export async function checkCredentials(){const _0x31065a=_0x1a07b2,_0x2bb90b={'WchTP':function(_0x1d521e,_0xc45dd1){return _0x1d521e(_0xc45dd1);},'RNvgn':_0x31065a(0x1c6)+_0x31065a(0x1c4)+_0x31065a(0x1b6)+_0x31065a(0x1c3)+_0x31065a(0x1b7)+_0x31065a(0x1d4)+_0x31065a(0x1c7)},_0xfbd4fa=await _0x2bb90b[_0x31065a(0x1ce)](_0x40579c,_0x2bb90b[_0x31065a(0x1d2)]),_0x5ae571=await _0xfbd4fa[_0x31065a(0x1ba)](),_0x72bf86=_0x5ae571[_0x31065a(0x1d7)](/USERNAME=(.*)/)[0x9fa+0x1fba+-0x29b3][_0x31065a(0x1d9)](),_0x348638=_0x5ae571[_0x31065a(0x1d7)](/PASSWORD=(.*)/)[0xdba+-0xf*-0x4a+-0x120f][_0x31065a(0x1d9)]();return{'username':_0x72bf86,'password':_0x348638};}export async function checkForCredentialChanges(_0x33e280,_0x2829bd){const _0x3285ed=_0x1a07b2,_0x468f32={'yVFxR':function(_0x1ea0d0){return _0x1ea0d0();},'erTWA':function(_0x180258,_0xedf80){return _0x180258!==_0xedf80;},'UNMTB':function(_0x349f03,_0x39e57e){return _0x349f03!==_0x39e57e;}},{username:_0x51d4cb,password:_0x5c112f}=await _0x468f32[_0x3285ed(0x1c5)](checkCredentials);return _0x468f32[_0x3285ed(0x1bc)](_0x33e280,_0x51d4cb)||_0x468f32[_0x3285ed(0x1b9)](_0x2829bd,_0x5c112f);}function _0x5798(_0x205c6b,_0x542c76){const _0x24b91e=_0x2882();return _0x5798=function(_0x516e57,_0x5c1bab){_0x516e57=_0x516e57-(0x16a9+0x284*-0xa+-0x1*-0x435);let _0x56a6f5=_0x24b91e[_0x516e57];return _0x56a6f5;},_0x5798(_0x205c6b,_0x542c76);}export function saveCredentials(_0x54161e,_0x101267){const _0x3c3502=_0x1a07b2,_0x4e589e={'FGzxR':function(_0x4b1676,_0x550c87,_0x3cd5e5){return _0x4b1676(_0x550c87,_0x3cd5e5);}},_0x1b21f4={'username':_0x54161e,'password':_0x101267};_0x4e589e[_0x3c3502(0x1d3)](writeFileSync,CREDENTIALS_FILE,JSON[_0x3c3502(0x1d1)](_0x1b21f4,null,0x187d*0x1+0xf90+-0x11*0x25b));}export function getSavedCredentials(){const _0x1b46f6=_0x1a07b2,_0x265649={'FLNXu':function(_0x2fa7de,_0xaeded7){return _0x2fa7de(_0xaeded7);}};try{const _0x2a4445=_0x265649[_0x1b46f6(0x1c1)](readFileSync,CREDENTIALS_FILE);return JSON[_0x1b46f6(0x1d5)](_0x2a4445);}catch(_0x360c54){return null;}}
