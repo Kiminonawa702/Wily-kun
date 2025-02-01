@@ -55,7 +55,9 @@ export async function sendConnectionMessage(Wilykun) {
 		'Mark as Received': process.env.MARK_AS_RECEIVED === 'true' ? 'Aktif ✅' : 'Tidak Aktif ❌',
 		'Self Mode': process.env.SELF === 'true' ? 'Aktif ✅' : 'Tidak Aktif ❌',
 		'Write Store': process.env.WRITE_STORE === 'true' ? 'Aktif ✅' : 'Tidak Aktif ❌',
-		'Auto Read Story Reaksi Emoji': process.env.ENABLE_EMOJI_REACTION === 'true' ? 'Aktif ✅' : 'Tidak Aktif ❌'
+		'Auto Read Story Reaksi Emoji': process.env.ENABLE_EMOJI_REACTION === 'true' ? 'Aktif ✅' : 'Tidak Aktif ❌',
+		'Welcome Message': process.env.ENABLE_WELCOME === 'true' ? 'Aktif ✅' : 'Tidak Aktif ❌', // Tambahkan fitur Welcome
+		'Goodbye Message': process.env.ENABLE_GOODBYE === 'true' ? 'Aktif ✅' : 'Tidak Aktif ❌' // Tambahkan fitur Goodbye
 	};
 
 	const activeFeatures = Object.entries(features)
@@ -101,7 +103,7 @@ Script Auto Read Story, Reaksi Emot Random, saat ini sedang dipantau oleh Owner 
 			forwardedMessage: true,
 			forwardedNewsletterMessageInfo: {
 				newsletterJid: '120363312297133690@newsletter',
-				newsletterName: 'Info Anime Dll',
+				newsletterName: 'Info Seputar Anime Dll 👤',
 				serverMessageId: '143'
 			}
 		}
