@@ -14,6 +14,20 @@ function getUptimeBot() {
 	return `${days} hari 🗓️ ${hours} jam ⏰ ${minutes} menit ⏳ ${seconds} detik ⏱️`;
 }
 
+async function retryWithDelay(fn, retries = 3, delay = 1000) {
+	for (let i = 0; i < retries; i++) {
+		try {
+			return await fn();
+		} catch (error) {
+			if (error.data === 429 && i < retries - 1) {
+				await new Promise(resolve => setTimeout(resolve, delay));
+			} else {
+				throw error;
+			}
+		}
+	}
+}
+
 /**
  * Memperbarui bio WhatsApp dengan waktu uptime bot.
  * @param {WASocket} Wilykun - Instance WASocket.
@@ -26,7 +40,9 @@ export const updateAutoBio = async (Wilykun) => {
 		}
 
 		const uptime = getUptimeBot();
-		await Wilykun.updateProfileStatus(`🤖 Bot berjalan selama: ${uptime} `);
+		await retryWithDelay(async () => {
+			await Wilykun.updateProfileStatus(`🤖 Bot berjalan selama: ${uptime} `);
+		});
 	} catch (error) {
 		console.error('Failed to update profile status:', error);
 	}

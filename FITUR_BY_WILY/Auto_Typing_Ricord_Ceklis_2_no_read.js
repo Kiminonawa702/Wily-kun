@@ -8,16 +8,22 @@ export async function handleAutoTyping(Wilykun, m) {
 	const enableRecording = process.env.ENABLE_RECORDING === 'true';
 	const markAsReceived = process.env.MARK_AS_RECEIVED === 'true';
 
+	const remoteJid = m?.key?.remoteJid;
+	if (!remoteJid) {
+		// console.error('remoteJid is undefined');
+		return;
+	}
+
 	// Show typing or recording status if enabled
 	if (enableTyping) {
-		await Wilykun.sendPresenceUpdate('composing', m.key.remoteJid);
+		await Wilykun.sendPresenceUpdate('composing', remoteJid);
 	} else if (enableRecording) {
-		await Wilykun.sendPresenceUpdate('recording', m.key.remoteJid);
+		await Wilykun.sendPresenceUpdate('recording', remoteJid);
 	}
 
 	// Tandai pesan sebagai telah diterima (ceklis dua abu-abu) jika diaktifkan
 	if (markAsReceived) {
-		await Wilykun.sendPresenceUpdate('available', m.key.remoteJid);
+		await Wilykun.sendPresenceUpdate('available', remoteJid);
 	}
 }
 

@@ -12,6 +12,20 @@ const __dirname = path.dirname(__filename);
  * @param {string} groupId - ID grup.
  * @param {string} participant - ID peserta yang baru masuk.
  */
+async function retryWithDelay(fn, retries = 3, delay = 1000) {
+	for (let i = 0; i < retries; i++) {
+		try {
+			return await fn();
+		} catch (error) {
+			if (error.data === 429 && i < retries - 1) {
+				await new Promise(resolve => setTimeout(resolve, delay));
+			} else {
+				throw error;
+			}
+		}
+	}
+}
+
 export const sendWelcomeMessage = async (Wilykun, groupId, participant) => {
 	const username = jidNormalizedUser(participant).split('@')[0];
 	const profilePictureUrl = await Wilykun.profilePictureUrl(participant, 'image').catch(() => 'https://example.com/default-profile-picture.png');
@@ -34,21 +48,23 @@ Total admin: ${totalAdmins} 👮‍♂️
 Jumlah anggota: ${totalMembers} 👨‍👩‍👧‍👦
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 	`;
-	await Wilykun.sendMessage(groupId, { 
-		caption: welcomeMessage, 
-		mentions: [participant, groupCreator],
-		image: { url: profilePictureUrl },
-		contextInfo: {
-			mentionedJid: [participant, groupCreator],
-			forwardingScore: 100,
-			isForwarded: true,
-			forwardedMessage: true,
-			forwardedNewsletterMessageInfo: {
-				newsletterJid: '120363312297133690@newsletter',
-				newsletterName: 'Info Seputar Anime Dll 👤',
-				serverMessageId: '143'
+	await retryWithDelay(async () => {
+		await Wilykun.sendMessage(groupId, { 
+			caption: welcomeMessage, 
+			mentions: [participant, groupCreator],
+			image: { url: profilePictureUrl },
+			contextInfo: {
+				mentionedJid: [participant, groupCreator],
+				forwardingScore: 100,
+				isForwarded: true,
+				forwardedMessage: true,
+				forwardedNewsletterMessageInfo: {
+					newsletterJid: '120363312297133690@newsletter',
+					newsletterName: 'Info Seputar Anime Dll 👤',
+					serverMessageId: '143'
+				}
 			}
-		}
+		});
 	});
 };
 

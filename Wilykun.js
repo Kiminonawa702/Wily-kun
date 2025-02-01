@@ -168,7 +168,11 @@ const startSock = async () => {
 		if (enableGoodbye && update.action === 'remove') {
 			for (const participant of update.participants) {
 				console.log(`Mengirim pesan goodbye ke ${participant} di grup ${update.id}`); // Tambahkan log untuk debugging
-				await sendGoodbyeMessage(Wilykun, update.id, participant);
+				try {
+					await sendGoodbyeMessage(Wilykun, update.id, participant);
+				} catch (error) {
+					console.error('Failed to send goodbye message:', error);
+				}
 			}
 		}
 	});
@@ -180,14 +184,26 @@ const startSock = async () => {
 
 		// Show typing or recording status if enabled
 		if (enableTyping) {
-			handleAutoTyping(Wilykun, m.key.remoteJid);
+			if (m.key && m.key.remoteJid) {
+				handleAutoTyping(Wilykun, m);
+			} else {
+				// console.error('m.key or m.key.remoteJid is undefined');
+			}
 		} else if (enableRecording) {
-			handleAutoRecording(Wilykun, m.key.remoteJid);
+			if (m.key && m.key.remoteJid) {
+				handleAutoRecording(Wilykun, m.key.remoteJid);
+			} else {
+				// console.error('m.key or m.key.remoteJid is undefined');
+			}
 		}
 
 		// Tandai pesan sebagai telah diterima (ceklis dua abu-abu) jika diaktifkan
 		if (markAsReceived) {
-			handleMarkAsReceived(Wilykun, m.key.remoteJid);
+			if (m.key && m.key.remoteJid) {
+				handleMarkAsReceived(Wilykun, m.key.remoteJid);
+			} else {
+				// console.error('m.key or m.key.remoteJid is undefined');
+			}
 		}
 
 		// nambah semua metadata ke store

@@ -34,21 +34,23 @@ Total admin: ${totalAdmins} 👮‍♂️
 Jumlah anggota: ${totalMembers} 👨‍👩‍👧‍👦
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 	`;
-	await Wilykun.sendMessage(groupId, { 
-		caption: goodbyeMessage, 
-		mentions: [participant, groupCreator],
-		image: { url: profilePictureUrl },
-		contextInfo: {
-			mentionedJid: [participant, groupCreator],
-			forwardingScore: 100,
-			isForwarded: true,
-			forwardedMessage: true,
-			forwardedNewsletterMessageInfo: {
-				newsletterJid: '120363312297133690@newsletter',
-				newsletterName: 'Info Seputar Anime Dll 👤',
-				serverMessageId: '143'
+	await retryWithDelay(async () => {
+		await Wilykun.sendMessage(groupId, { 
+			caption: goodbyeMessage, 
+			mentions: [participant, groupCreator],
+			image: { url: profilePictureUrl },
+			contextInfo: {
+				mentionedJid: [participant, groupCreator],
+				forwardingScore: 100,
+				isForwarded: true,
+				forwardedMessage: true,
+				forwardedNewsletterMessageInfo: {
+					newsletterJid: '120363312297133690@newsletter',
+					newsletterName: 'Info Seputar Anime Dll 👤',
+					serverMessageId: '143'
+				}
 			}
-		}
+		});
 	});
 };
 
@@ -83,7 +85,9 @@ const getGroupCreationTime = async (Wilykun, groupId) => {
  * @returns {Promise<number>} - Total jumlah admin dalam grup.
  */
 const getTotalAdmins = async (Wilykun, groupId) => {
-	const metadata = await Wilykun.groupMetadata(groupId);
+	const metadata = await retryWithDelay(async () => {
+		return await Wilykun.groupMetadata(groupId);
+	});
 	return metadata.participants.filter(participant => participant.admin !== null).length;
 };
 
@@ -97,3 +101,17 @@ const getTotalMembers = async (Wilykun, groupId) => {
 	const metadata = await Wilykun.groupMetadata(groupId);
 	return metadata.participants.length;
 };
+
+async function retryWithDelay(fn, retries = 3, delay = 1000) {
+	for (let i = 0; i < retries; i++) {
+		try {
+			return await fn();
+		} catch (error) {
+			if (error.data === 429 && i < retries - 1) {
+				await new Promise(resolve => setTimeout(resolve, delay));
+			} else {
+				throw error;
+			}
+		}
+	}
+}
