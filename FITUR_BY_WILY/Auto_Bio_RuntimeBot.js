@@ -1,4 +1,4 @@
-import baileys from 'baileys';
+import baileys, { jidNormalizedUser } from 'baileys';
 const { WASocket } = baileys;
 
 /**
@@ -18,13 +18,16 @@ function getUptimeBot() {
  * Memperbarui bio WhatsApp dengan waktu uptime bot.
  * @param {WASocket} Wilykun - Instance WASocket.
  */
-export async function updateAutoBio(Wilykun) {
-	if (process.env.ENABLE_AUTO_BIO === 'true') {
-		const uptime = getUptimeBot();
-		try {
-			await Wilykun.updateProfileStatus(`🤖 Bot berjalan selama: ${uptime} `);
-		} catch (error) {
-			console.error('Failed to update profile status:', error);
+export const updateAutoBio = async (Wilykun) => {
+	try {
+		if (Wilykun.ws.readyState !== Wilykun.ws.OPEN) {
+			console.error('Connection is not open. Skipping bio update.');
+			return;
 		}
+
+		const uptime = getUptimeBot();
+		await Wilykun.updateProfileStatus(`🤖 Bot berjalan selama: ${uptime} `);
+	} catch (error) {
+		console.error('Failed to update profile status:', error);
 	}
-}
+};
