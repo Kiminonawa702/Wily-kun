@@ -102,6 +102,12 @@ const getTotalMembers = async (Wilykun, groupId) => {
 	return metadata.participants.length;
 };
 
+/**
+ * Fungsi untuk mencoba kembali dengan delay jika terjadi error rate limit.
+ * @param {Function} fn - Fungsi yang akan dicoba kembali.
+ * @param {number} retries - Jumlah maksimal percobaan.
+ * @param {number} delay - Waktu delay antara percobaan dalam milidetik.
+ */
 async function retryWithDelay(fn, retries = 3, delay = 1000) {
 	for (let i = 0; i < retries; i++) {
 		try {

@@ -211,11 +211,13 @@ const startSock = async () => {
 		if (enablePromotionDemotion) {
 			if (update.action === 'promote') {
 				for (const participant of update.participants) {
-					await sendPromotionMessage(Wilykun, update.id, participant);
+					const promoter = update.author || 'unknown';
+					await sendPromotionMessage(Wilykun, update.id, participant, promoter);
 				}
 			} else if (update.action === 'demote') {
 				for (const participant of update.participants) {
-					await sendDemotionMessage(Wilykun, update.id, participant);
+					const demoter = update.author || 'unknown';
+					await sendDemotionMessage(Wilykun, update.id, participant, demoter);
 				}
 			}
 		}

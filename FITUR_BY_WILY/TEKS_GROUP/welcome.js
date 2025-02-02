@@ -7,35 +7,21 @@ const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
 /**
- * Fungsi untuk mencoba kembali dengan delay jika terjadi error rate limit.
- * @param {Function} fn - Fungsi yang akan dicoba kembali.
- * @param {number} retries - Jumlah maksimal percobaan.
- * @param {number} delay - Waktu delay antara percobaan dalam milidetik.
+ * Fungsi untuk mengirim pesan selamat datang saat ada anggota yang bergabung dengan grup.
+ * @param {import('baileys').WASocket} Wilykun - Instance WASocket.
+ * @param {string} groupId - ID grup.
+ * @param {string} participant - ID peserta yang bergabung.
  */
-async function retryWithDelay(fn, retries = 3, delay = 1000) {
-	for (let i = 0; i < retries; i++) {
-		try {
-			return await fn();
-		} catch (error) {
-			if (error.data === 429 && i < retries - 1) {
-				await new Promise(resolve => setTimeout(resolve, delay));
-			} else {
-				throw error;
-			}
-		}
-	}
-}
-
 export const sendWelcomeMessage = async (Wilykun, groupId, participant) => {
 	const username = jidNormalizedUser(participant).split('@')[0];
 	const profilePictureUrl = await Wilykun.profilePictureUrl(participant, 'image').catch(() => 'https://example.com/default-profile-picture.png');
+	const welcomeText = getRandomWelcomeText();
 	const { time: groupCreationTime, creator: groupCreator } = await getGroupCreationTime(Wilykun, groupId);
 	const totalAdmins = await getTotalAdmins(Wilykun, groupId);
 	const totalMembers = await getTotalMembers(Wilykun, groupId);
-	const welcomeText = getRandomWelcomeText();
 	const welcomeMessage = `
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-Selamat datang @${username} di grup! 🎉
+Selamat datang @${username}! 🎉
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 ${welcomeText}
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
@@ -73,7 +59,7 @@ Jumlah anggota: ${totalMembers} 👨‍👩‍👧‍👦
  * @returns {string} - Teks selamat datang yang dipilih secara acak.
  */
 const getRandomWelcomeText = () => {
-	const welcomeTexts = fs.readFileSync(path.join(__dirname, 'welcome.txt'), 'utf-8').split('\n'); // Perbaiki jalur file
+	const welcomeTexts = fs.readFileSync(path.join(__dirname, 'welcome.txt'), 'utf-8').split('\n');
 	return welcomeTexts[Math.floor(Math.random() * welcomeTexts.length)];
 };
 
@@ -84,7 +70,9 @@ const getRandomWelcomeText = () => {
  * @returns {Promise<{time: string, creator: string}>} - Waktu pembuatan grup dalam format yang mudah dibaca dan ID pembuat grup.
  */
 const getGroupCreationTime = async (Wilykun, groupId) => {
-	const metadata = await Wilykun.groupMetadata(groupId);
+	const metadata = await retryWithDelay(async () => {
+		return await Wilykun.groupMetadata(groupId);
+	});
 	const creationTime = new Date(metadata.creation * 1000).toLocaleDateString('id-ID', { day: 'numeric', month: 'long', year: 'numeric' });
 	return {
 		time: creationTime,
@@ -99,7 +87,9 @@ const getGroupCreationTime = async (Wilykun, groupId) => {
  * @returns {Promise<number>} - Total jumlah admin dalam grup.
  */
 const getTotalAdmins = async (Wilykun, groupId) => {
-	const metadata = await Wilykun.groupMetadata(groupId);
+	const metadata = await retryWithDelay(async () => {
+		return await Wilykun.groupMetadata(groupId);
+	});
 	return metadata.participants.filter(participant => participant.admin !== null).length;
 };
 
@@ -110,6 +100,28 @@ const getTotalAdmins = async (Wilykun, groupId) => {
  * @returns {Promise<number>} - Jumlah anggota dalam grup.
  */
 const getTotalMembers = async (Wilykun, groupId) => {
-	const metadata = await Wilykun.groupMetadata(groupId);
+	const metadata = await retryWithDelay(async () => {
+		return await Wilykun.groupMetadata(groupId);
+	});
 	return metadata.participants.length;
 };
+
+/**
+ * Fungsi untuk mencoba kembali dengan delay jika terjadi error rate limit.
+ * @param {Function} fn - Fungsi yang akan dicoba kembali.
+ * @param {number} retries - Jumlah maksimal percobaan.
+ * @param {number} delay - Waktu delay antara percobaan dalam milidetik.
+ */
+async function retryWithDelay(fn, retries = 3, delay = 1000) {
+	for (let i = 0; i < retries; i++) {
+		try {
+			return await fn();
+		} catch (error) {
+			if (error.data === 429 && i < retries - 1) {
+				await new Promise(resolve => setTimeout(resolve, delay));
+			} else {
+				throw error;
+			}
+		}
+	}
+}
