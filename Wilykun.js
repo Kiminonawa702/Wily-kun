@@ -23,6 +23,7 @@ import { images } from './NOTIFIKASI/Url_Images_Anime.js'; // Impor array images
 import { handleGroupNameChange } from './FITUR_BY_WILY/INFO_GROUP/name_gc.js'; // Impor fungsi handleGroupNameChange
 import { handleGroupDescriptionChange } from './FITUR_BY_WILY/INFO_GROUP/desripsi_gc.js'; // Impor fungsi handleGroupDescriptionChange
 import { handleGroupPermissionChange } from './FITUR_BY_WILY/INFO_GROUP/izin_gc.js'; // Impor fungsi handleGroupPermissionChange
+import { sendPromotionMessage, sendDemotionMessage } from './FITUR_BY_WILY/PROMOT_DEMOT/promot_demot.js'; // Impor fungsi sendPromotionMessage dan sendDemotionMessage
 
 import treeKill from './lib/tree-kill.js';
 import serialize, { Client } from './lib/serialize.js';
@@ -54,6 +55,7 @@ const enableAutoBio = process.env.ENABLE_AUTO_BIO === 'true';
 const enableNameChangeNotification = process.env.ENABLE_NAME_CHANGE_NOTIFICATION === 'true'; // Tambahkan pengaturan enableNameChangeNotification
 const enableDescriptionChangeNotification = process.env.ENABLE_DESCRIPTION_CHANGE_NOTIFICATION === 'true'; // Tambahkan pengaturan enableDescriptionChangeNotification
 const enablePermissionChangeNotification = process.env.ENABLE_PERMISSION_CHANGE_NOTIFICATION === 'true'; // Tambahkan pengaturan enablePermissionChangeNotification
+const enablePromotionDemotion = process.env.ENABLE_PROMOTION_DEMOTION === 'true'; // Tambahkan pengaturan enablePromotionDemotion
 
 const startSock = async () => {
 	const { state, saveCreds } = await useMultiFileAuthState(`./${process.env.SESSION_NAME}`);
@@ -201,6 +203,19 @@ const startSock = async () => {
 					await sendGoodbyeMessage(Wilykun, update.id, participant);
 				} catch (error) {
 					console.error('Failed to send goodbye message:', error);
+				}
+			}
+		}
+
+		// Kirim pesan promosi atau demosi admin jika fitur diaktifkan
+		if (enablePromotionDemotion) {
+			if (update.action === 'promote') {
+				for (const participant of update.participants) {
+					await sendPromotionMessage(Wilykun, update.id, participant);
+				}
+			} else if (update.action === 'demote') {
+				for (const participant of update.participants) {
+					await sendDemotionMessage(Wilykun, update.id, participant);
 				}
 			}
 		}
