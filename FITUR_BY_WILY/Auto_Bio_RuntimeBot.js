@@ -45,5 +45,9 @@ export const updateAutoBio = async (Wilykun) => {
 		});
 	} catch (error) {
 		console.error('Failed to update profile status:', error);
+		if (error.message === 'Connection Closed') {
+			// console.log('Retrying to update profile status...'); // Hapus atau komentari baris ini
+			setTimeout(() => updateAutoBio(Wilykun), 5000); // Retry after 5 seconds
+		}
 	}
 };
