@@ -46,6 +46,7 @@ const enableRecording = process.env.ENABLE_RECORDING === 'true';
 const markAsReceived = process.env.MARK_AS_RECEIVED === 'true';
 const enableWelcome = process.env.ENABLE_WELCOME === 'true'; // Tambahkan pengaturan enableWelcome
 const enableGoodbye = process.env.ENABLE_GOODBYE === 'true'; // Tambahkan pengaturan enableGoodbye
+const enableAutoBio = process.env.ENABLE_AUTO_BIO === 'true';
 
 const startSock = async () => {
 	const { state, saveCreds } = await useMultiFileAuthState(`./${process.env.SESSION_NAME}`);
@@ -249,9 +250,11 @@ const startSock = async () => {
 			}
 		}
 
-		// Perbarui bio WhatsApp dengan waktu uptime bot
-		if (Wilykun.ws.readyState === Wilykun.ws.OPEN) {
+		// Perbarui bio WhatsApp dengan waktu uptime bot jika ENABLE_AUTO_BIO diaktifkan
+		if (enableAutoBio && Wilykun.ws.readyState === Wilykun.ws.OPEN) {
 			await updateAutoBio(Wilykun);
+		} else if (!enableAutoBio) {
+			// Fitur auto bio dinonaktifkan, tidak perlu log
 		} else {
 			console.error('Connection is not open. Skipping bio update.');
 		}
