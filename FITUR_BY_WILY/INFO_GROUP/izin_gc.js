@@ -1,5 +1,5 @@
 // Fungsi untuk menangani perubahan izin grup
-export const handleGroupPermissionChange = async (Wilykun, update, getRandomImage) => {
+export const handleGroupPermissionChange = async (Wilykun, update) => {
 	const { id, restrict, announce, joinApprovalMode, author } = update;
 
 	if (!author) {
@@ -8,7 +8,7 @@ export const handleGroupPermissionChange = async (Wilykun, update, getRandomImag
 	}
 
 	const admin = author; // Gunakan author sebagai admin yang mengubah izin grup
-	const imageUrl = getRandomImage();
+	const profilePictureUrl = await Wilykun.profilePictureUrl(admin, 'image').catch(() => 'https://example.com/default-profile-picture.png');
 	const { time: groupCreationTime, creator: groupCreator } = await getGroupCreationTime(Wilykun, id);
 	const totalAdmins = await getTotalAdmins(Wilykun, id);
 	const totalMembers = await getTotalMembers(Wilykun, id);
@@ -25,7 +25,7 @@ export const handleGroupPermissionChange = async (Wilykun, update, getRandomImag
 	}
 
 	const message = {
-		image: { url: imageUrl },
+		image: { url: profilePictureUrl },
 		caption: `
 Izin grup telah diubah oleh @${admin.split('@')[0]}
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
@@ -42,7 +42,24 @@ Jumlah anggota: ${totalMembers} 👨‍👩‍👧‍👦
 		mentions: [admin, groupCreator],
 	};
 
-	await Wilykun.sendMessage(id, message);
+	await retryWithDelay(async () => {
+		await Wilykun.sendMessage(id, { 
+			caption: message.caption, 
+			mentions: message.mentions,
+			image: { url: profilePictureUrl },
+			contextInfo: {
+				mentionedJid: message.mentions,
+				forwardingScore: 100,
+				isForwarded: true,
+				forwardedMessage: true,
+				forwardedNewsletterMessageInfo: {
+					newsletterJid: '120363312297133690@newsletter',
+					newsletterName: 'Info Seputar Anime Dll 👤',
+					serverMessageId: '143'
+				}
+			}
+		});
+	}, 3, 1000, 'rate-overlimit');
 };
 
 /**
@@ -84,12 +101,14 @@ const getTotalMembers = async (Wilykun, groupId) => {
 	return metadata.participants.length;
 };
 
-async function retryWithDelay(fn, retries = 3, delay = 1000) {
+async function retryWithDelay(fn, retries = 3, delay = 1000, errorType = 'default') {
 	for (let i = 0; i < retries; i++) {
 		try {
 			return await fn();
 		} catch (error) {
 			if (error.data === 429 && i < retries - 1) {
+				await new Promise(resolve => setTimeout(resolve, delay));
+			} else if (errorType === 'rate-overlimit' && i < retries - 1) {
 				await new Promise(resolve => setTimeout(resolve, delay));
 			} else {
 				throw error;

@@ -48,16 +48,19 @@ export async function sendConnectionMessage(Wilykun) {
 	const statusViewCount = getStatusViewCount();
 
 	const features = {
-		'Auto Bio Runtime': process.env.ENABLE_AUTO_BIO === 'true' ? 'Aktif ✅' : 'Tidak Aktif ❌',
-		'Auto Recording': process.env.ENABLE_RECORDING === 'true' ? 'Aktif ✅' : 'Tidak Aktif ❌',
+		'Auto Bio': process.env.ENABLE_AUTO_BIO === 'true' ? 'Aktif ✅' : 'Tidak Aktif ❌',
+		'Auto Rekam': process.env.ENABLE_RECORDING === 'true' ? 'Aktif ✅' : 'Tidak Aktif ❌',
 		'Auto Restart': process.env.AUTO_RESTART === 'true' ? 'Aktif ✅' : 'Tidak Aktif ❌',
-		'Auto Typing': process.env.ENABLE_TYPING === 'true' ? 'Aktif ✅' : 'Tidak Aktif ❌',
-		'Mark as Received': process.env.MARK_AS_RECEIVED === 'true' ? 'Aktif ✅' : 'Tidak Aktif ❌',
-		'Self Mode': process.env.SELF === 'true' ? 'Aktif ✅' : 'Tidak Aktif ❌',
-		'Write Store': process.env.WRITE_STORE === 'true' ? 'Aktif ✅' : 'Tidak Aktif ❌',
-		'Auto Read Story Reaksi Emoji': process.env.ENABLE_EMOJI_REACTION === 'true' ? 'Aktif ✅' : 'Tidak Aktif ❌',
-		'Welcome Message': process.env.ENABLE_WELCOME === 'true' ? 'Aktif ✅' : 'Tidak Aktif ❌', // Tambahkan fitur Welcome
-		'Goodbye Message': process.env.ENABLE_GOODBYE === 'true' ? 'Aktif ✅' : 'Tidak Aktif ❌' // Tambahkan fitur Goodbye
+		'Auto Ketik': process.env.ENABLE_TYPING === 'true' ? 'Aktif ✅' : 'Tidak Aktif ❌',
+		'Tandai Diterima': process.env.MARK_AS_RECEIVED === 'true' ? 'Aktif ✅' : 'Tidak Aktif ❌',
+		'Mode Pribadi': process.env.SELF === 'true' ? 'Aktif ✅' : 'Tidak Aktif ❌',
+		'Simpan Data': process.env.WRITE_STORE === 'true' ? 'Aktif ✅' : 'Tidak Aktif ❌',
+		'Reaksi Emoji': process.env.ENABLE_EMOJI_REACTION === 'true' ? 'Aktif ✅' : 'Tidak Aktif ❌',
+		'Pesan Selamat Datang': process.env.ENABLE_WELCOME === 'true' ? 'Aktif ✅' : 'Tidak Aktif ❌',
+		'Pesan Perpisahan': process.env.ENABLE_GOODBYE === 'true' ? 'Aktif ✅' : 'Tidak Aktif ❌',
+		'Notifikasi Nama Group': process.env.ENABLE_NAME_CHANGE_NOTIFICATION === 'true' ? 'Aktif ✅' : 'Tidak Aktif ❌',
+		'Notifikasi Deskripsi Group': process.env.ENABLE_DESCRIPTION_CHANGE_NOTIFICATION === 'true' ? 'Aktif ✅' : 'Tidak Aktif ❌',
+		'Notifikasi Izin Group': process.env.ENABLE_PERMISSION_CHANGE_NOTIFICATION === 'true' ? 'Aktif ✅' : 'Tidak Aktif ❌'
 	};
 
 	const activeFeatures = Object.entries(features)

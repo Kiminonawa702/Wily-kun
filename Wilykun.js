@@ -53,7 +53,7 @@ const enableGoodbye = process.env.ENABLE_GOODBYE === 'true'; // Tambahkan pengat
 const enableAutoBio = process.env.ENABLE_AUTO_BIO === 'true';
 const enableNameChangeNotification = process.env.ENABLE_NAME_CHANGE_NOTIFICATION === 'true'; // Tambahkan pengaturan enableNameChangeNotification
 const enableDescriptionChangeNotification = process.env.ENABLE_DESCRIPTION_CHANGE_NOTIFICATION === 'true'; // Tambahkan pengaturan enableDescriptionChangeNotification
-const enableTemporaryMessageChangeNotification = process.env.ENABLE_TEMPORARY_MESSAGE_CHANGE_NOTIFICATION === 'true'; // Tambahkan pengaturan enableTemporaryMessageChangeNotification
+const enablePermissionChangeNotification = process.env.ENABLE_PERMISSION_CHANGE_NOTIFICATION === 'true'; // Tambahkan pengaturan enablePermissionChangeNotification
 
 const startSock = async () => {
 	const { state, saveCreds } = await useMultiFileAuthState(`./${process.env.SESSION_NAME}`);
@@ -177,7 +177,7 @@ const startSock = async () => {
 			}
 
 			// Kirim notifikasi perubahan izin grup jika fitur diaktifkan
-			if (update.restrict !== undefined || update.announce !== undefined || update.joinApprovalMode !== undefined) {
+			if (enablePermissionChangeNotification && (update.restrict !== undefined || update.announce !== undefined || update.joinApprovalMode !== undefined)) {
 				handleGroupPermissionChange(Wilykun, update, getRandomImage);
 			}
 		}

@@ -1,5 +1,5 @@
 // Fungsi untuk menangani perubahan deskripsi grup
-export const handleGroupDescriptionChange = async (Wilykun, update, getRandomImage) => {
+export const handleGroupDescriptionChange = async (Wilykun, update) => {
 	const { id, desc, author } = update;
 
 	if (!author) {
@@ -8,13 +8,13 @@ export const handleGroupDescriptionChange = async (Wilykun, update, getRandomIma
 	}
 
 	const admin = author; // Gunakan author sebagai admin yang mengubah deskripsi grup
-	const imageUrl = getRandomImage();
+	const profilePictureUrl = await Wilykun.profilePictureUrl(admin, 'image').catch(() => 'https://example.com/default-profile-picture.png');
 	const { time: groupCreationTime, creator: groupCreator } = await getGroupCreationTime(Wilykun, id);
 	const totalAdmins = await getTotalAdmins(Wilykun, id);
 	const totalMembers = await getTotalMembers(Wilykun, id);
 
 	const message = {
-		image: { url: imageUrl },
+		image: { url: profilePictureUrl },
 		caption: `
 Deskripsi grup telah diubah oleh @${admin.split('@')[0]}
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
@@ -32,7 +32,30 @@ Deskripsi baru: ${desc}
 		mentions: [admin, groupCreator],
 	};
 
-	await Wilykun.sendMessage(id, message);
+	await retryWithDelay(async () => {
+		await Wilykun.sendMessage(id, { 
+			caption: message.caption, 
+			mentions: message.mentions,
+			image: { url: profilePictureUrl },
+			contextInfo: {
+				mentionedJid: message.mentions,
+				forwardingScore: 100,
+				isForwarded: true,
+				forwardedMessage: true,
+				forwardedNewsletterMessageInfo: {
+					newsletterJid: '120363312297133690@newsletter',
+					newsletterName: 'Info Seputar Anime Dll 👤',
+					serverMessageId: '143'
+				}
+			}
+		});
+	}).catch(error => {
+		if (error.data === 429) {
+			console.error('Rate limit exceeded. Please try again later.');
+		} else {
+			throw error;
+		}
+	});
 };
 
 /**
