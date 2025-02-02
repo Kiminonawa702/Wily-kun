@@ -1,5 +1,6 @@
 import baileys, { jidNormalizedUser } from 'baileys';
 const { WASocket } = baileys;
+import { retryWithDelay } from '../utils/retry.js'; // Pastikan path ini benar
 
 /**
  * Mengambil waktu uptime bot dalam format hari, jam, menit, dan detik.
@@ -14,19 +15,11 @@ function getUptimeBot() {
 	return `${days} hari 🗓️ ${hours} jam ⏰ ${minutes} menit ⏳ ${seconds} detik ⏱️`;
 }
 
-async function retryWithDelay(fn, retries = 3, delay = 1000) {
-	for (let i = 0; i < retries; i++) {
-		try {
-			return await fn();
-		} catch (error) {
-			if (error.data === 429 && i < retries - 1) {
-				await new Promise(resolve => setTimeout(resolve, delay));
-			} else {
-				throw error;
-			}
-		}
-	}
-}
+const updateBio = async (Wilykun, newBio) => {
+	await retryWithDelay(async () => {
+		await Wilykun.updateProfileStatus(newBio);
+	});
+};
 
 /**
  * Memperbarui bio WhatsApp dengan waktu uptime bot.
@@ -40,9 +33,7 @@ export const updateAutoBio = async (Wilykun) => {
 		}
 
 		const uptime = getUptimeBot();
-		await retryWithDelay(async () => {
-			await Wilykun.updateProfileStatus(`🤖 Bot berjalan selama: ${uptime} `);
-		});
+		await updateBio(Wilykun, `🤖 Bot berjalan selama: ${uptime} `);
 	} catch (error) {
 		console.error('Failed to update profile status:', error);
 		if (error.message === 'Connection Closed') {

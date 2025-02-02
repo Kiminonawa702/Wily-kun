@@ -1,3 +1,5 @@
+import { retryWithDelay } from '../utils/retry.js'; // Pastikan path ini benar
+
 // Fungsi untuk menangani perubahan deskripsi grup
 export const handleGroupDescriptionChange = async (Wilykun, update) => {
 	const { id, desc, author } = update;
@@ -65,7 +67,9 @@ Deskripsi baru: ${desc}
  * @returns {Promise<{time: string, creator: string}>} - Waktu pembuatan grup dalam format yang mudah dibaca dan ID pembuat grup.
  */
 const getGroupCreationTime = async (Wilykun, groupId) => {
-	const metadata = await Wilykun.groupMetadata(groupId);
+	const metadata = await retryWithDelay(async () => {
+		return await Wilykun.groupMetadata(groupId);
+	});
 	const creationTime = new Date(metadata.creation * 1000).toLocaleDateString('id-ID', { day: 'numeric', month: 'long', year: 'numeric' });
 	return {
 		time: creationTime,
@@ -93,20 +97,15 @@ const getTotalAdmins = async (Wilykun, groupId) => {
  * @returns {Promise<number>} - Jumlah anggota dalam grup.
  */
 const getTotalMembers = async (Wilykun, groupId) => {
-	const metadata = await Wilykun.groupMetadata(groupId);
+	const metadata = await retryWithDelay(async () => {
+		return await Wilykun.groupMetadata(groupId);
+	});
 	return metadata.participants.length;
 };
 
-async function retryWithDelay(fn, retries = 3, delay = 1000) {
-	for (let i = 0; i < retries; i++) {
-		try {
-			return await fn();
-		} catch (error) {
-			if (error.data === 429 && i < retries - 1) {
-				await new Promise(resolve => setTimeout(resolve, delay));
-			} else {
-				throw error;
-			}
-		}
-	}
-}
+const getGroupDescription = async (Wilykun, groupId) => {
+	const metadata = await retryWithDelay(async () => {
+		return await Wilykun.groupMetadata(groupId);
+	});
+	return metadata.desc;
+};

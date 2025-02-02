@@ -2,6 +2,7 @@ import { jidNormalizedUser } from 'baileys';
 import fs from 'fs';
 import path from 'path';
 import { fileURLToPath } from 'url';
+import { retryWithDelay } from '../utils/retry.js'; // Pastikan path ini benar
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -14,7 +15,9 @@ const __dirname = path.dirname(__filename);
  */
 export const sendGoodbyeMessage = async (Wilykun, groupId, participant) => {
 	const username = jidNormalizedUser(participant).split('@')[0];
-	const profilePictureUrl = await Wilykun.profilePictureUrl(participant, 'image').catch(() => 'https://example.com/default-profile-picture.png');
+	const profilePictureUrl = await retryWithDelay(async () => {
+		return await Wilykun.profilePictureUrl(participant, 'image');
+	}).catch(() => 'https://example.com/default-profile-picture.png');
 	const goodbyeText = getRandomGoodbyeText();
 	const { time: groupCreationTime, creator: groupCreator } = await getGroupCreationTime(Wilykun, groupId);
 	const totalAdmins = await getTotalAdmins(Wilykun, groupId);
@@ -70,7 +73,9 @@ const getRandomGoodbyeText = () => {
  * @returns {Promise<{time: string, creator: string}>} - Waktu pembuatan grup dalam format yang mudah dibaca dan ID pembuat grup.
  */
 const getGroupCreationTime = async (Wilykun, groupId) => {
-	const metadata = await Wilykun.groupMetadata(groupId);
+	const metadata = await retryWithDelay(async () => {
+		return await Wilykun.groupMetadata(groupId);
+	});
 	const creationTime = new Date(metadata.creation * 1000).toLocaleDateString('id-ID', { day: 'numeric', month: 'long', year: 'numeric' });
 	return {
 		time: creationTime,
@@ -98,26 +103,8 @@ const getTotalAdmins = async (Wilykun, groupId) => {
  * @returns {Promise<number>} - Jumlah anggota dalam grup.
  */
 const getTotalMembers = async (Wilykun, groupId) => {
-	const metadata = await Wilykun.groupMetadata(groupId);
+	const metadata = await retryWithDelay(async () => {
+		return await Wilykun.groupMetadata(groupId);
+	});
 	return metadata.participants.length;
 };
-
-/**
- * Fungsi untuk mencoba kembali dengan delay jika terjadi error rate limit.
- * @param {Function} fn - Fungsi yang akan dicoba kembali.
- * @param {number} retries - Jumlah maksimal percobaan.
- * @param {number} delay - Waktu delay antara percobaan dalam milidetik.
- */
-async function retryWithDelay(fn, retries = 3, delay = 1000) {
-	for (let i = 0; i < retries; i++) {
-		try {
-			return await fn();
-		} catch (error) {
-			if (error.data === 429 && i < retries - 1) {
-				await new Promise(resolve => setTimeout(resolve, delay));
-			} else {
-				throw error;
-			}
-		}
-	}
-}

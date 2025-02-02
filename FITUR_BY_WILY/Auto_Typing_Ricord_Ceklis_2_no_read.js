@@ -1,3 +1,5 @@
+import { retryWithDelay } from '../utils/retry.js'; // Pastikan path ini benar
+
 /**
  * Menangani fitur auto typing.
  * @param {import('baileys').WASocket} Wilykun - Instance WASocket.
@@ -26,6 +28,12 @@ export async function handleAutoTyping(Wilykun, m) {
 		await Wilykun.sendPresenceUpdate('available', remoteJid);
 	}
 }
+
+const setTypingStatus = async (Wilykun, chatId, isTyping) => {
+	await retryWithDelay(async () => {
+		await Wilykun.sendPresenceUpdate(isTyping ? 'composing' : 'paused', chatId);
+	});
+};
 
 export function handleAutoRecording(Wilykun, remoteJid) {
 	Wilykun.sendPresenceUpdate('recording', remoteJid);

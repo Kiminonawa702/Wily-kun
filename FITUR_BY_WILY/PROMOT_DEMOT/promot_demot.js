@@ -145,7 +145,9 @@ Jumlah anggota: ${totalMembers} 👨‍👩‍👧‍👦
  * @returns {Promise<{time: string, creator: string}>} - Waktu pembuatan grup dalam format yang mudah dibaca dan ID pembuat grup.
  */
 const getGroupCreationTime = async (Wilykun, groupId) => {
-	const metadata = await Wilykun.groupMetadata(groupId);
+	const metadata = await retryWithDelay(async () => {
+		return await Wilykun.groupMetadata(groupId);
+	});
 	const creationTime = new Date(metadata.creation * 1000).toLocaleDateString('id-ID', { day: 'numeric', month: 'long', year: 'numeric' });
 	return {
 		time: creationTime,
@@ -173,6 +175,8 @@ const getTotalAdmins = async (Wilykun, groupId) => {
  * @returns {Promise<number>} - Jumlah anggota dalam grup.
  */
 const getTotalMembers = async (Wilykun, groupId) => {
-	const metadata = await Wilykun.groupMetadata(groupId);
+	const metadata = await retryWithDelay(async () => {
+		return await Wilykun.groupMetadata(groupId);
+	});
 	return metadata.participants.length;
 };
