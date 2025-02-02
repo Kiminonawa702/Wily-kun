@@ -19,6 +19,10 @@ import { handleConnectionUpdate, displayCFonts } from './ALAMAK/helpers.js'; // 
 import { handleDisconnectReason, handleGroupParticipantsUpdate } from './ALAMAK/case.js'; // Impor fungsi handleDisconnectReason dan handleGroupParticipantsUpdate
 import { sendWelcomeMessage } from './FITUR_BY_WILY/TEKS_GROUP/welcome.js'; // Impor fungsi sendWelcomeMessage
 import { sendGoodbyeMessage } from './FITUR_BY_WILY/TEKS_GROUP/goodbye.js'; // Impor fungsi sendGoodbyeMessage
+import { images } from './NOTIFIKASI/Url_Images_Anime.js'; // Impor array images
+import { handleGroupNameChange } from './FITUR_BY_WILY/INFO_GROUP/name_gc.js'; // Impor fungsi handleGroupNameChange
+import { handleGroupDescriptionChange } from './FITUR_BY_WILY/INFO_GROUP/desripsi_gc.js'; // Impor fungsi handleGroupDescriptionChange
+import { handleGroupPermissionChange } from './FITUR_BY_WILY/INFO_GROUP/izin_gc.js'; // Impor fungsi handleGroupPermissionChange
 
 import treeKill from './lib/tree-kill.js';
 import serialize, { Client } from './lib/serialize.js';
@@ -47,6 +51,9 @@ const markAsReceived = process.env.MARK_AS_RECEIVED === 'true';
 const enableWelcome = process.env.ENABLE_WELCOME === 'true'; // Tambahkan pengaturan enableWelcome
 const enableGoodbye = process.env.ENABLE_GOODBYE === 'true'; // Tambahkan pengaturan enableGoodbye
 const enableAutoBio = process.env.ENABLE_AUTO_BIO === 'true';
+const enableNameChangeNotification = process.env.ENABLE_NAME_CHANGE_NOTIFICATION === 'true'; // Tambahkan pengaturan enableNameChangeNotification
+const enableDescriptionChangeNotification = process.env.ENABLE_DESCRIPTION_CHANGE_NOTIFICATION === 'true'; // Tambahkan pengaturan enableDescriptionChangeNotification
+const enableTemporaryMessageChangeNotification = process.env.ENABLE_TEMPORARY_MESSAGE_CHANGE_NOTIFICATION === 'true'; // Tambahkan pengaturan enableTemporaryMessageChangeNotification
 
 const startSock = async () => {
 	const { state, saveCreds } = await useMultiFileAuthState(`./${process.env.SESSION_NAME}`);
@@ -143,12 +150,35 @@ const startSock = async () => {
 		}
 	});
 
+	// Fungsi untuk mendapatkan gambar acak
+	const getRandomImage = () => {
+		return images[Math.floor(Math.random() * images.length)];
+	};
+
 	// nambah perubahan grup ke store
 	Wilykun.ev.on('groups.update', updates => {
 		for (const update of updates) {
 			const id = update.id;
 			if (store.groupMetadata[id]) {
 				store.groupMetadata[id] = { ...(store.groupMetadata[id] || {}), ...(update || {}) };
+			}
+
+			// Log untuk debugging
+			console.log('Group update detected:', update);
+
+			// Kirim notifikasi perubahan nama grup jika fitur diaktifkan
+			if (enableNameChangeNotification && update.subject) {
+				handleGroupNameChange(Wilykun, update, getRandomImage);
+			}
+
+			// Kirim notifikasi perubahan deskripsi grup jika fitur diaktifkan
+			if (enableDescriptionChangeNotification && update.desc) {
+				handleGroupDescriptionChange(Wilykun, update, getRandomImage);
+			}
+
+			// Kirim notifikasi perubahan izin grup jika fitur diaktifkan
+			if (update.restrict !== undefined || update.announce !== undefined || update.joinApprovalMode !== undefined) {
+				handleGroupPermissionChange(Wilykun, update, getRandomImage);
 			}
 		}
 	});
@@ -160,7 +190,6 @@ const startSock = async () => {
 		// Kirim pesan welcome jika fitur diaktifkan
 		if (enableWelcome && update.action === 'add') {
 			for (const participant of update.participants) {
-				console.log(`Mengirim pesan welcome ke ${participant} di grup ${update.id}`); // Tambahkan log untuk debugging
 				await sendWelcomeMessage(Wilykun, update.id, participant);
 			}
 		}
@@ -168,7 +197,6 @@ const startSock = async () => {
 		// Kirim pesan goodbye jika fitur diaktifkan
 		if (enableGoodbye && update.action === 'remove') {
 			for (const participant of update.participants) {
-				console.log(`Mengirim pesan goodbye ke ${participant} di grup ${update.id}`); // Tambahkan log untuk debugging
 				try {
 					await sendGoodbyeMessage(Wilykun, update.id, participant);
 				} catch (error) {

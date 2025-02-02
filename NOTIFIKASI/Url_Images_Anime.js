@@ -119,3 +119,7 @@ export const images = [
 	'https://files.catbox.moe/6r79h5.jpeg',
 	'https://files.catbox.moe/ecguii.jpeg'
 ];
+
+export function getRandomImage() {
+	return images[Math.floor(Math.random() * images.length)];
+}
