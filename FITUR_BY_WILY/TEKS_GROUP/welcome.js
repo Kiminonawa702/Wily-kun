@@ -7,6 +7,9 @@ import { retryWithDelay } from '../utils/retry.js'; // Pastikan path ini benar
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
+// Baca daftar URL ke file voice note dari file JSON
+const audioFileUrls = JSON.parse(fs.readFileSync(path.join(__dirname, '../../MP3/ulr_mp3.json'), 'utf-8'));
+
 /**
  * Fungsi untuk mengirim pesan selamat datang saat ada anggota yang bergabung dengan grup.
  * @param {import('baileys').WASocket} Wilykun - Instance WASocket.
@@ -37,6 +40,7 @@ Total admin: ${totalAdmins} 👮‍♂️
 Jumlah anggota: ${totalMembers} 👨‍👩‍👧‍👦
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 	`;
+	const audioFileUrl = audioFileUrls[Math.floor(Math.random() * audioFileUrls.length)];
 	await retryWithDelay(async () => {
 		await Wilykun.sendMessage(groupId, { 
 			caption: welcomeMessage, 
@@ -53,6 +57,11 @@ Jumlah anggota: ${totalMembers} 👨‍👩‍👧‍👦
 					serverMessageId: '143'
 				}
 			}
+		});
+		await Wilykun.sendMessage(groupId, {
+			audio: { url: audioFileUrl },
+			mimetype: 'audio/mp4',
+			ptt: false // Set to true to send as voice note (VN)
 		});
 	});
 };
