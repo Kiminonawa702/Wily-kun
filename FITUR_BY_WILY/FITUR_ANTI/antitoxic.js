@@ -3,15 +3,30 @@ import { retryWithDelay } from '../utils/retry.js'; // Pastikan path ini benar
 import fs from 'fs';
 import path from 'path';
 import { fileURLToPath } from 'url';
+import dotenv from 'dotenv'; // Tambahkan ini untuk mengimpor dotenv
+
+dotenv.config(); // Load .env file
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
-const offensiveWords = JSON.parse(fs.readFileSync(path.join(__dirname, '../../DATA/txt_toxic.json'), 'utf-8'));
-const responseMessage = 'Jaga bahasa ya! 😊';
+const txtToxicPath = path.join(__dirname, '../../DATA/txt_toxic.json');
+let offensiveWords = [];
+
+try {
+	const data = fs.readFileSync(txtToxicPath, 'utf-8');
+	offensiveWords = JSON.parse(data);
+} catch (error) {
+	console.error('Gagal membaca atau mengurai txt_toxic.json:', error);
+}
+
+const responseMessage = 'Tolong jaga bahasa Anda! 😊'; // Pesan balasan yang diperbarui
+const enableAntitoxic = process.env.ENABLE_ANTITOXIC === 'true'; // Baca nilai dari .env
 
 export async function handleToxicMessage(Wilykun, message) {
 	if (!message.message || !message.key.remoteJid) return;
+
+	if (!enableAntitoxic) return; // Tambahkan pengecekan ini
 
 	const text = (message.message.conversation || message.message.extendedTextMessage?.text || '').toLowerCase();
 	const containsOffensiveWord = offensiveWords.some(word => text.includes(word.toLowerCase()));
@@ -27,24 +42,25 @@ export async function handleToxicMessage(Wilykun, message) {
 			const totalAdmins = await getTotalAdmins(Wilykun, message.key.remoteJid);
 			const totalMembers = await getTotalMembers(Wilykun, message.key.remoteJid);
 
-			const goodbyeMessage = `
-━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-${responseMessage}
-━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+			const separatorLine = '━'.repeat(responseMessage.length + senderJid.split('@')[0].length + 2);
+			const antitoxicMessage = `
+${separatorLine}
+@${senderJid.split('@')[0]} ${responseMessage}
+${separatorLine}
 Grup ini dibuat pada: ${groupCreationTime} 📅
-━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+${separatorLine}
 Pembuat grup: @${groupCreator.split('@')[0]} 🧑‍💼
-━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+${separatorLine}
 Total admin: ${totalAdmins} 👮‍♂️
-━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+${separatorLine}
 Jumlah anggota: ${totalMembers} 👨‍👩‍👧‍👦
-━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+${separatorLine}
 			`;
 
 			await Wilykun.sendMessage(
 				jidNormalizedUser(message.key.remoteJid),
 				{
-					caption: goodbyeMessage,
+					caption: antitoxicMessage,
 					mentions: [senderJid, groupCreator],
 					image: { url: profilePictureUrl },
 					contextInfo: {
@@ -113,3 +129,7 @@ const getTotalMembers = async (Wilykun, groupId) => {
 	});
 	return metadata.participants.length;
 };
+
+export function someFunction() {
+	// Function implementation
+}

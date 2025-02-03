@@ -1,5 +1,69 @@
 import { retryWithDelay } from '../utils/retry.js'; // Pastikan path ini benar
 
+// Fungsi untuk menangani perubahan izin grup
+export const handleGroupPermissionChange = async (Wilykun, update) => {
+	const { id, restrict, announce, joinApprovalMode, author } = update;
+
+	if (!author) {
+		console.error('No author found for group permission change');
+		return;
+	}
+
+	const admin = author; // Gunakan author sebagai admin yang mengubah izin grup
+	const profilePictureUrl = await Wilykun.profilePictureUrl(admin, 'image').catch(() => 'https://example.com/default-profile-picture.png');
+	const { time: groupCreationTime, creator: groupCreator } = await getGroupCreationTime(Wilykun, id);
+	const totalAdmins = await getTotalAdmins(Wilykun, id);
+	const totalMembers = await getTotalMembers(Wilykun, id);
+
+	let permissionText = '';
+	if (restrict !== undefined) {
+		permissionText += restrict ? 'Hanya admin yang dapat mengedit pengaturan grup. 🔒\n' : 'Semua anggota dapat mengedit pengaturan grup. 🔓\n';
+	}
+	if (announce !== undefined) {
+		permissionText += announce ? 'Hanya admin yang dapat mengirim pesan. 📢\n' : 'Semua anggota dapat mengirim pesan. 💬\n';
+	}
+	if (joinApprovalMode !== undefined) {
+		permissionText += joinApprovalMode ? 'Persetujuan admin diperlukan untuk menambahkan anggota baru. ✅\n' : 'Anggota dapat ditambahkan tanpa persetujuan admin. ➕\n';
+	}
+
+	const message = {
+		image: { url: profilePictureUrl },
+		caption: `
+Izin grup telah diubah oleh @${admin.split('@')[0]}
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+${permissionText}━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+Grup ini dibuat pada: ${groupCreationTime} 📅
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+Pembuat grup: @${groupCreator.split('@')[0]} 🧑‍💼
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+Total admin: ${totalAdmins} 👮‍♂️
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+Jumlah anggota: ${totalMembers} 👨‍👩‍👧‍👦
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+		`,
+		mentions: [admin, groupCreator],
+	};
+
+	await retryWithDelay(async () => {
+		await Wilykun.sendMessage(id, { 
+			caption: message.caption, 
+			mentions: message.mentions,
+			image: { url: profilePictureUrl },
+			contextInfo: {
+				mentionedJid: message.mentions,
+				forwardingScore: 100,
+				isForwarded: true,
+				forwardedMessage: true,
+				forwardedNewsletterMessageInfo: {
+					newsletterJid: '120363312297133690@newsletter',
+					newsletterName: 'Info Seputar Anime Dll 👤',
+					serverMessageId: '143'
+				}
+			}
+		});
+	}, 3, 1000, 'rate-overlimit');
+};
+
 // Fungsi untuk menangani perubahan nama grup
 export const handleGroupNameChange = async (Wilykun, update) => {
 	const { id, subject, author } = update;
@@ -18,7 +82,9 @@ export const handleGroupNameChange = async (Wilykun, update) => {
 	const message = {
 		image: { url: profilePictureUrl },
 		caption: `
-Nama grup telah diubah menjadi *${subject}* oleh @${admin.split('@')[0]}
+Nama grup telah diubah oleh @${admin.split('@')[0]}
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+Nama baru: ${subject}
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 Grup ini dibuat pada: ${groupCreationTime} 📅
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
@@ -49,13 +115,7 @@ Jumlah anggota: ${totalMembers} 👨‍👩‍👧‍👦
 				}
 			}
 		});
-	}, 3, 1000, 'rate-overlimit').catch(error => {
-		if (error.data === 429) {
-			console.error('Rate limit exceeded. Please try again later.');
-		} else {
-			throw error;
-		}
-	});
+	}, 3, 1000, 'rate-overlimit');
 };
 
 /**
@@ -101,9 +161,4 @@ const getTotalMembers = async (Wilykun, groupId) => {
 	return metadata.participants.length;
 };
 
-const getGroupName = async (Wilykun, groupId) => {
-	const metadata = await retryWithDelay(async () => {
-		return await Wilykun.groupMetadata(groupId);
-	});
-	return metadata.subject;
-};
+export { getGroupCreationTime, getTotalAdmins, getTotalMembers };

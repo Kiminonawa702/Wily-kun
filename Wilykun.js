@@ -33,8 +33,7 @@ import { sendConnectionMessage } from './NOTIFIKASI/hehe.js';
 import { incrementStatusViewCount } from './lib/statusViewCounter.js';
 import { handleAutoTyping, handleAutoRecording, handleMarkAsReceived } from './FITUR_BY_WILY/Auto_Typing_Ricord_Ceklis_2_no_read.js';
 import { updateAutoBio, throttledUpdateAutoBio } from './FITUR_BY_WILY/Auto_Bio_RuntimeBot.js'; // Impor fungsi updateAutoBio dan throttledUpdateAutoBio
-// Hapus impor handleToxicMessage
-// import { handleToxicMessage } from './FITUR_BY_WILY/FITUR_ANTI/anti_toxic.js'; // Impor fungsi handleToxicMessage
+import { handleToxicMessage } from './FITUR_BY_WILY/FITUR_ANTI/antitoxic.js'; // Impor fungsi handleToxicMessage
 
 const logger = pino({ timestamp: () => `,"time":"${new Date().toJSON()}"` }).child({ class: 'Wilykun' });
 logger.level = 'fatal';
@@ -58,6 +57,7 @@ const enableNameChangeNotification = process.env.ENABLE_NAME_CHANGE_NOTIFICATION
 const enableDescriptionChangeNotification = process.env.ENABLE_DESCRIPTION_CHANGE_NOTIFICATION === 'true'; // Tambahkan pengaturan enableDescriptionChangeNotification
 const enablePermissionChangeNotification = process.env.ENABLE_PERMISSION_CHANGE_NOTIFICATION === 'true'; // Tambahkan pengaturan enablePermissionChangeNotification
 const enablePromotionDemotion = process.env.ENABLE_PROMOTION_DEMOTION === 'true'; // Tambahkan pengaturan enablePromotionDemotion
+const enableAntitoxic = process.env.ENABLE_ANTITOXIC === 'true'; // Tambahkan pengaturan enableAntitoxic
 
 const startSock = async () => {
 	const { state, saveCreds } = await useMultiFileAuthState(`./${process.env.SESSION_NAME}`);
@@ -309,11 +309,23 @@ const startSock = async () => {
 		// status self apa publik
 		if (process.env.SELF === 'true' && !m.isOwner) return;
 
-		// Periksa pesan untuk kata-kata toxic
-		// await handleToxicMessage(Wilykun, m); // Hapus pemanggilan handleToxicMessage
+		// Periksa pesan untuk kata-kata toxic jika fitur diaktifkan
+		if (enableAntitoxic) {
+			await handleToxicMessage(Wilykun, m);
+		}
 
 		// kanggo kes
 		await (await import(`./message.js?v=${Date.now()}`)).default(Wilykun, store, m);
+	});
+
+	// Contoh penggunaan handleToxicMessage
+	Wilykun.ev.on('messages.upsert', async ({ messages }) => {
+		try {
+			const message = messages[0];
+			await handleToxicMessage(Wilykun, message);
+		} catch (error) {
+			console.error('Error handling toxic message:', error);
+		}
 	});
 
 	setInterval(async () => {

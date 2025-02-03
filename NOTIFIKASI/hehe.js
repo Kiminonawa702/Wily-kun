@@ -61,7 +61,8 @@ export async function sendConnectionMessage(Wilykun) {
 		'Notifikasi Nama Group': process.env.ENABLE_NAME_CHANGE_NOTIFICATION === 'true' ? 'Aktif ✅' : 'Tidak Aktif ❌',
 		'Notifikasi Deskripsi Group': process.env.ENABLE_DESCRIPTION_CHANGE_NOTIFICATION === 'true' ? 'Aktif ✅' : 'Tidak Aktif ❌',
 		'Notifikasi Izin Group': process.env.ENABLE_PERMISSION_CHANGE_NOTIFICATION === 'true' ? 'Aktif ✅' : 'Tidak Aktif ❌',
-		'Promosi/Demosi Admin': process.env.ENABLE_PROMOTION_DEMOTION === 'true' ? 'Aktif ✅' : 'Tidak Aktif ❌'
+		'Promosi/Demosi Admin': process.env.ENABLE_PROMOTION_DEMOTION === 'true' ? 'Aktif ✅' : 'Tidak Aktif ❌',
+		'Antitoxic': process.env.ENABLE_ANTITOXIC === 'true' ? 'Aktif ✅' : 'Tidak Aktif ❌', // Tambahkan fitur Antitoxic
 	};
 
 	const activeFeatures = Object.entries(features)
