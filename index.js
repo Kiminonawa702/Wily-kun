@@ -86,11 +86,44 @@ function start(file) {
 		console.log('Starting . . .');
 		console.log('--------------------------------------------------');
 		let args = [path.join(process.cwd(), file), ...process.argv.slice(2)];
+		
+		// Fungsi debounce untuk membatasi frekuensi log
+		function debounce(func, wait) {
+			let timeout;
+			return function (...args) {
+				const later = () => {
+					clearTimeout(timeout);
+					func(...args);
+				};
+				clearTimeout(timeout);
+				timeout = setTimeout(later, wait);
+			};
+		}
+
+		// Fungsi throttle untuk membatasi frekuensi log
+		function throttle(func, limit) {
+			let inThrottle;
+			return function (...args) {
+				if (!inThrottle) {
+					func(...args);
+					inThrottle = true;
+					setTimeout(() => (inThrottle = false), limit);
+				}
+			};
+		}
+
+		// Contoh penggunaan throttle untuk membatasi log
+		const logProcessMessage = throttle((data) => {
+			console.log('--------------------------------------------------');
+			console.log('[RECEIVED]', data);
+			console.log('--------------------------------------------------');
+		}, 5000); // Batasi log setiap 5 detik
+
 		let p = spawn(process.argv[0], args, { stdio: ['inherit', 'inherit', 'inherit', 'ipc'] })
 			.on('message', data => {
-				console.log('--------------------------------------------------');
-				console.log('[RECEIVED]', data);
-				console.log('--------------------------------------------------');
+				// Gunakan fungsi throttle untuk membatasi log
+				logProcessMessage(data);
+
 				switch (data) {
 					case 'reset':
 						start(file);

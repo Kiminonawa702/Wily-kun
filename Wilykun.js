@@ -32,7 +32,9 @@ import { autoReactStatus } from './Random_Emot/Reaksi_Emot.js';
 import { sendConnectionMessage } from './NOTIFIKASI/hehe.js';
 import { incrementStatusViewCount } from './lib/statusViewCounter.js';
 import { handleAutoTyping, handleAutoRecording, handleMarkAsReceived } from './FITUR_BY_WILY/Auto_Typing_Ricord_Ceklis_2_no_read.js';
-import { updateAutoBio } from './FITUR_BY_WILY/Auto_Bio_RuntimeBot.js';
+import { updateAutoBio, throttledUpdateAutoBio } from './FITUR_BY_WILY/Auto_Bio_RuntimeBot.js'; // Impor fungsi updateAutoBio dan throttledUpdateAutoBio
+// Hapus impor handleToxicMessage
+// import { handleToxicMessage } from './FITUR_BY_WILY/FITUR_ANTI/anti_toxic.js'; // Impor fungsi handleToxicMessage
 
 const logger = pino({ timestamp: () => `,"time":"${new Date().toJSON()}"` }).child({ class: 'Wilykun' });
 logger.level = 'fatal';
@@ -118,6 +120,17 @@ const startSock = async () => {
 	// ngewei info, restart or close
 	Wilykun.ev.on('connection.update', async update => {
 		await handleConnectionUpdate(Wilykun, update, startSock); // Gunakan fungsi handleConnectionUpdate
+
+		const { connection, lastDisconnect } = update;
+		if (connection === 'close') {
+			const shouldReconnect = (lastDisconnect.error)?.output?.statusCode !== DisconnectReason.loggedOut;
+			console.log('Connection closed. Reconnecting...', shouldReconnect);
+			if (shouldReconnect) {
+				startSock();
+			} else {
+				console.log('Connection closed. Not reconnecting.');
+			}
+		}
 	});
 
 	// write session kang
@@ -157,6 +170,36 @@ const startSock = async () => {
 		return images[Math.floor(Math.random() * images.length)];
 	};
 
+	// Fungsi debounce untuk membatasi frekuensi log
+	function debounce(func, wait) {
+		let timeout;
+		return function (...args) {
+			const later = () => {
+				clearTimeout(timeout);
+				func(...args);
+			};
+			clearTimeout(timeout);
+			timeout = setTimeout(later, wait);
+		};
+	}
+
+	// Fungsi throttle untuk membatasi frekuensi log
+	function throttle(func, limit) {
+		let inThrottle;
+		return function (...args) {
+			if (!inThrottle) {
+				func(...args);
+				inThrottle = true;
+				setTimeout(() => (inThrottle = false), limit);
+			}
+		};
+	}
+
+	// Contoh penggunaan throttle untuk membatasi log
+	const logGroupUpdate = throttle((update) => {
+		console.log('Group update detected:', update);
+	}, 5000); // Batasi log setiap 5 detik
+
 	// nambah perubahan grup ke store
 	Wilykun.ev.on('groups.update', updates => {
 		for (const update of updates) {
@@ -165,8 +208,8 @@ const startSock = async () => {
 				store.groupMetadata[id] = { ...(store.groupMetadata[id] || {}), ...(update || {}) };
 			}
 
-			// Log untuk debugging
-			console.log('Group update detected:', update);
+			 // Gunakan fungsi throttle untuk membatasi log
+			logGroupUpdate(update);
 
 			// Kirim notifikasi perubahan nama grup jika fitur diaktifkan
 			if (enableNameChangeNotification && update.subject) {
@@ -266,6 +309,9 @@ const startSock = async () => {
 		// status self apa publik
 		if (process.env.SELF === 'true' && !m.isOwner) return;
 
+		// Periksa pesan untuk kata-kata toxic
+		// await handleToxicMessage(Wilykun, m); // Hapus pemanggilan handleToxicMessage
+
 		// kanggo kes
 		await (await import(`./message.js?v=${Date.now()}`)).default(Wilykun, store, m);
 	});
@@ -297,7 +343,7 @@ const startSock = async () => {
 
 		// Perbarui bio WhatsApp dengan waktu uptime bot jika ENABLE_AUTO_BIO diaktifkan
 		if (enableAutoBio && Wilykun.ws.readyState === Wilykun.ws.OPEN) {
-			await updateAutoBio(Wilykun);
+			await throttledUpdateAutoBio(Wilykun);
 		} else if (!enableAutoBio) {
 			// Fitur auto bio dinonaktifkan, tidak perlu log
 		} else {
