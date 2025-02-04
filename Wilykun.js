@@ -34,7 +34,6 @@ import { incrementStatusViewCount } from './lib/statusViewCounter.js';
 import { handleAutoTyping, handleAutoRecording, handleMarkAsReceived } from './FITUR_BY_WILY/Auto_Typing_Ricord_Ceklis_2_no_read.js';
 import { updateAutoBio, throttledUpdateAutoBio } from './FITUR_BY_WILY/Auto_Bio_RuntimeBot.js'; // Impor fungsi updateAutoBio dan throttledUpdateAutoBio
 import { handleToxicMessage } from './FITUR_BY_WILY/FITUR_ANTI/antitoxic.js'; // Impor fungsi handleToxicMessage
-import { autoClearSession } from './FITUR_BY_WILY/AUTO_CLEAR_SESI/auto_clear_session.js'; // Impor fungsi autoClearSession
 
 const logger = pino({ timestamp: () => `,"time":"${new Date().toJSON()}"` }).child({ class: 'Wilykun' });
 logger.level = 'fatal';
@@ -59,7 +58,6 @@ const enableDescriptionChangeNotification = process.env.ENABLE_DESCRIPTION_CHANG
 const enablePermissionChangeNotification = process.env.ENABLE_PERMISSION_CHANGE_NOTIFICATION === 'true'; // Tambahkan pengaturan enablePermissionChangeNotification
 const enablePromotionDemotion = process.env.ENABLE_PROMOTION_DEMOTION === 'true'; // Tambahkan pengaturan enablePromotionDemotion
 const enableAntitoxic = process.env.ENABLE_ANTITOXIC === 'true'; // Tambahkan pengaturan enableAntitoxic
-const enableAutoClearSession = process.env.ENABLE_AUTO_CLEAR_SESSION === 'true'; // Tambahkan pengaturan enableAutoClearSession
 
 const startSock = async () => {
 	const { state, saveCreds } = await useMultiFileAuthState(`./${process.env.SESSION_NAME}`);
@@ -104,12 +102,6 @@ const startSock = async () => {
 
 	store.bind(Wilykun.ev);
 	await Client({ Wilykun, store });
-
-	// Hapus folder sesi jika fitur diaktifkan
-	if (enableAutoClearSession) {
-		const sessionFolder = `./${process.env.SESSION_NAME}`;
-		autoClearSession(sessionFolder);
-	}
 
 	// login dengan pairing
 	if (usePairingCode && !Wilykun.authState.creds.registered) {

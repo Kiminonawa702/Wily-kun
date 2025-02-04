@@ -42,19 +42,17 @@ export async function handleToxicMessage(Wilykun, message) {
 			const totalAdmins = await getTotalAdmins(Wilykun, message.key.remoteJid);
 			const totalMembers = await getTotalMembers(Wilykun, message.key.remoteJid);
 
-			const separatorLine = '━'.repeat(responseMessage.length + senderJid.split('@')[0].length + 2);
 			const antitoxicMessage = `
-${separatorLine}
 @${senderJid.split('@')[0]} ${responseMessage}
-${separatorLine}
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 Grup ini dibuat pada: ${groupCreationTime} 📅
-${separatorLine}
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 Pembuat grup: @${groupCreator.split('@')[0]} 🧑‍💼
-${separatorLine}
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 Total admin: ${totalAdmins} 👮‍♂️
-${separatorLine}
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 Jumlah anggota: ${totalMembers} 👨‍👩‍👧‍👦
-${separatorLine}
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 			`;
 
 			await Wilykun.sendMessage(

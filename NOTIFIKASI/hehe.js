@@ -63,7 +63,6 @@ export async function sendConnectionMessage(Wilykun) {
 		'Notifikasi Izin Group': process.env.ENABLE_PERMISSION_CHANGE_NOTIFICATION === 'true' ? 'Aktif ✅' : 'Tidak Aktif ❌',
 		'Promosi/Demosi Admin': process.env.ENABLE_PROMOTION_DEMOTION === 'true' ? 'Aktif ✅' : 'Tidak Aktif ❌',
 		'Antitoxic': process.env.ENABLE_ANTITOXIC === 'true' ? 'Aktif ✅' : 'Tidak Aktif ❌', // Tambahkan fitur Antitoxic
-		'Auto Clear Session': process.env.ENABLE_AUTO_CLEAR_SESSION === 'true' ? 'Aktif ✅' : 'Tidak Aktif ❌', // Tambahkan fitur Auto Clear Session
 	};
 
 	const activeFeatures = Object.entries(features)
