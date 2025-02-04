@@ -2,6 +2,7 @@ import { jidNormalizedUser } from 'baileys';
 import { sendTelegram } from '../lib/function.js';
 import { emojis } from './kumpulaEmot.js';
 import chalk from 'chalk'; // Tambahkan ini untuk mengimpor chalk
+import { incrementStatusViewCount } from '../lib/statusViewCounter.js'; // Tambahkan ini untuk mengimpor incrementStatusViewCount
 
 // Set untuk melacak story yang sudah diberi reaksi
 const reactedStories = new Set();
@@ -74,6 +75,9 @@ export async function autoReactStatus(Wilykun, m) {
 			console.log(randomColor(`${colorName}Nama: (${participantName})\x1b[0m`));
 			console.log(randomColor(`${colorType}Tipe: (${messageType})\x1b[0m`));
 			console.log(randomColor('------------------------------------------------------------'));
+
+			// Tambahkan jumlah tampilan status
+			incrementStatusViewCount();
 		}
 	} else {
 		// Jika fitur reaksi emoji dinonaktifkan, hanya melihat status tanpa reaksi
@@ -87,6 +91,9 @@ export async function autoReactStatus(Wilykun, m) {
 		console.log(randomColor(`Nama: (${participantName})`));
 		console.log(randomColor(`Tipe: (${messageType})`));
 		console.log(randomColor('------------------------------------------------------------'));
+
+		// Tambahkan jumlah tampilan status
+		incrementStatusViewCount();
 	}
 
 	// Mengirim pesan ke Telegram jika token dan ID Telegram tersedia

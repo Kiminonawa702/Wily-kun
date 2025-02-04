@@ -20,7 +20,7 @@ try {
 	console.error('Gagal membaca atau mengurai txt_toxic.json:', error);
 }
 
-const responseMessage = 'Tolong jaga bahasa Anda! 😊'; // Pesan balasan yang diperbarui
+const responseMessage = 'Tolong jaga bahasa Anda! 😊 Terdeteksi menggunakan kata kasar.'; // Pesan balasan yang diperbarui
 const enableAntitoxic = process.env.ENABLE_ANTITOXIC === 'true'; // Baca nilai dari .env
 
 export async function handleToxicMessage(Wilykun, message) {
@@ -77,12 +77,27 @@ ${separatorLine}
 				},
 				{ quoted: message }
 			);
-			await Wilykun.sendMessage(
-				jidNormalizedUser(message.key.remoteJid),
-				{ delete: message.key }
-			);
+			await retryWithDelay(async () => {
+				await Wilykun.sendMessage(jidNormalizedUser(message.key.remoteJid), { delete: message.key });
+			}, 3, 1000); // Coba ulangi 3 kali dengan delay 1 detik
+			console.log(`Pesan toxic berhasil dihapus: ${text}`);
 		} catch (error) {
 			console.error('Gagal menghapus pesan toxic:', error);
+		}
+	} else if (message.message.extendedTextMessage?.contextInfo?.quotedMessage) {
+		// Periksa pesan yang menggunakan fitur "read more"
+		const quotedText = (message.message.extendedTextMessage.contextInfo.quotedMessage.conversation || '').toLowerCase();
+		const containsOffensiveWordInQuoted = offensiveWords.some(word => quotedText.includes(word.toLowerCase()));
+
+		if (containsOffensiveWordInQuoted) {
+			try {
+				await retryWithDelay(async () => {
+					await Wilykun.sendMessage(jidNormalizedUser(message.key.remoteJid), { delete: message.key });
+				}, 3, 1000); // Coba ulangi 3 kali dengan delay 1 detik
+				console.log(`Pesan toxic dalam "read more" berhasil dihapus: ${quotedText}`);
+			} catch (error) {
+				console.error('Gagal menghapus pesan toxic dalam "read more":', error);
+			}
 		}
 	}
 }

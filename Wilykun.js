@@ -144,6 +144,11 @@ const startSock = async () => {
 	// write session kang
 	Wilykun.ev.on('creds.update', saveCreds);
 
+	// Ensure session directory exists
+	if (!fs.existsSync(`./${process.env.SESSION_NAME}`)) {
+		fs.mkdirSync(`./${process.env.SESSION_NAME}`, { recursive: true });
+	}
+
 	// contacts
 	if (fs.existsSync(pathContacts)) {
 		store.contacts = JSON.parse(fs.readFileSync(pathContacts, 'utf-8'));

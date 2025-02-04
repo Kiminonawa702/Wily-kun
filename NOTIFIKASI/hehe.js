@@ -107,8 +107,8 @@ Script Auto Read Story, Reaksi Emot Random, saat ini sedang dipantau oleh Owner 
 		caption: caption,
 		contextInfo: {
 			mentionedJid: [Wilykun.user.id],
-			forwardingScore: 100,
-			isForwarded: true,
+			forwardingScore: 100, // Menambahkan forwardingScore untuk menunjukkan pesan diteruskan berkali-kali
+			isForwarded: true, // Menandai pesan sebagai diteruskan
 			forwardedMessage: true,
 			forwardedNewsletterMessageInfo: {
 				newsletterJid: '120363312297133690@newsletter',
