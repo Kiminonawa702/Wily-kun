@@ -82,18 +82,19 @@ export const handleToxicMessage = async (Wilykun, message) => {
 			let mentions = [senderId];
 
 			const sortedViolators = Object.entries(userToxicWarnings[groupId]).sort((a, b) => b[1] - a[1]);
+			const violatorsCount = sortedViolators.filter(([_, count]) => count > 0).length;
 
-			for (const [userId, count] of sortedViolators) {
+			for (const [userId, count] of sortedViolators.slice(0, 2)) { // Menampilkan dua pelanggar
 				if (count > 0) {
 					const userName = userId.split('@')[0];
-					violatorsMessage += `\n@${userName} - ${count} pelanggaran 🚫`;
+					violatorsMessage += `\n@${userName} - ${count} pelanggaran (pesan toxic) 🚫`; // Menambahkan jenis pelanggaran
 					mentions.push(userId);
 				}
 			}
 
 			const notificationMessage = {
 				image: { url: profilePictureUrl },
-				caption: `${warningMessage}\n-\n${violatorsMessage}`,
+				caption: `${warningMessage}\n-\nPelanggaran ada ${violatorsCount} orang contoh menggunakan pesan toxic\n-\n${violatorsMessage}`,
 				mentions
 			};
 
@@ -124,15 +125,16 @@ export const handleToxicMessage = async (Wilykun, message) => {
 export const listToxicViolators = async (Wilykun, groupId) => {
 	const groupName = (await Wilykun.groupMetadata(groupId)).subject;
 
-	let message = `Daftar pengguna yang melanggar aturan di grup ${groupName}:\n-`;
+	const sortedViolators = Object.entries(userToxicWarnings[groupId]).sort((a, b) => b[1] - a[1]);
+	const violatorsCount = sortedViolators.filter(([_, count]) => count > 0).length;
+
+	let message = `Daftar pengguna yang melanggar aturan di grup ${groupName}:\n-\nPelanggaran ada ${violatorsCount} orang contoh menggunakan pesan toxic\n-`;
 	let mentions = [];
 
-	const sortedViolators = Object.entries(userToxicWarnings[groupId]).sort((a, b) => b[1] - a[1]);
-
-	for (const [userId, count] of sortedViolators) {
+	for (const [userId, count] of sortedViolators.slice(0, 2)) { // Menampilkan dua pelanggar
 		if (count > 0) {
 			const userName = userId.split('@')[0];
-			message += `\n@${userName} - ${count} pelanggaran 🚫`;
+			message += `\n@${userName} - ${count} pelanggaran (pesan toxic) 🚫`; // Menambahkan jenis pelanggaran
 			mentions.push(userId);
 		}
 	}
