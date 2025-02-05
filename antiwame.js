@@ -3,41 +3,30 @@ import { warningMessages } from './TEKS_PERINGATAN/teks_peringtan_antiwame.js'; 
 import fs from 'fs';
 import path from 'path';
 
-const DATA_DIR = './DATA';
+const DATA_FILE = './DATA/UserWarningsWame.json';
 let userWarnings = {};
 
 // Memuat data pelanggaran pengguna dari file
-const loadUserWarnings = (groupId) => {
-	const dataFile = path.join(DATA_DIR, `${groupId}_userWarnings.json`);
-	if (fs.existsSync(dataFile)) {
-		const data = fs.readFileSync(dataFile, 'utf-8');
-		userWarnings[groupId] = JSON.parse(data);
-	} else {
-		userWarnings[groupId] = {};
+const loadUserWarnings = () => {
+	if (fs.existsSync(DATA_FILE)) {
+		const data = fs.readFileSync(DATA_FILE, 'utf-8');
+		userWarnings = JSON.parse(data);
 	}
 };
 
 // Menyimpan data pelanggaran pengguna ke file
-const saveUserWarnings = (groupId) => {
-	const dataFile = path.join(DATA_DIR, `${groupId}_userWarnings.json`);
-	if (!fs.existsSync(DATA_DIR)) {
-		fs.mkdirSync(DATA_DIR, { recursive: true });
-	}
-	fs.writeFileSync(dataFile, JSON.stringify(userWarnings[groupId], null, 2));
+const saveUserWarnings = () => {
+	fs.writeFileSync(DATA_FILE, JSON.stringify(userWarnings, null, 2));
 };
 
 // Inisialisasi data pelanggaran pengguna
-const initializeUserWarnings = (groupId) => {
-	if (!userWarnings[groupId]) {
-		loadUserWarnings(groupId);
-	}
-};
+loadUserWarnings();
 
 export const handleAntiWaMe = async (Wilykun, message) => {
 	if (process.env.ENABLE_ANTIWAME !== 'true') return; // Periksa apakah fitur antiwame diaktifkan
 
 	const text = message.message?.conversation || message.message?.extendedTextMessage?.text || '';
-	const waMeRegex = /https:\/\/wa\.me\/|wa\.me/gi;
+	const waMeRegex = /https?:\/\/wa\.me\/|wa\.me\/|wa\.me/gi;
 	const groupId = message.key.remoteJid;
 	const groupName = (await Wilykun.groupMetadata(groupId)).subject;
 
@@ -47,7 +36,9 @@ export const handleAntiWaMe = async (Wilykun, message) => {
 			const profilePictureUrl = await Wilykun.profilePictureUrl(senderId, 'image').catch(() => 'https://example.com/default-profile-picture.png');
 
 			// Inisialisasi data pelanggaran untuk grup
-			initializeUserWarnings(groupId);
+			if (!userWarnings[groupId]) {
+				userWarnings[groupId] = {};
+			}
 
 			// Menambah jumlah peringatan untuk pengguna
 			if (!userWarnings[groupId][senderId]) {
@@ -57,7 +48,7 @@ export const handleAntiWaMe = async (Wilykun, message) => {
 			}
 
 			// Menyimpan data pelanggaran pengguna ke file
-			saveUserWarnings(groupId);
+			saveUserWarnings();
 
 			// Mendapatkan pesan peringatan yang sesuai
 			const warningIndex = Math.min(userWarnings[groupId][senderId] - 1, warningMessages.length - 2);
@@ -92,7 +83,7 @@ export const handleAntiWaMe = async (Wilykun, message) => {
 				const kickMessage = warningMessages[warningMessages.length - 1].replace('{user}', senderId.split('@')[0]);
 				await retry(() => Wilykun.sendMessage(message.key.remoteJid, { text: kickMessage }));
 				delete userWarnings[groupId][senderId]; // Mengatur ulang jumlah peringatan setelah mengeluarkan
-				saveUserWarnings(groupId); // Menyimpan perubahan ke file
+				saveUserWarnings(); // Menyimpan perubahan ke file
 			}
 		} catch (error) {
 			console.error('Gagal menghapus pesan link wa.me:', error);
@@ -102,7 +93,6 @@ export const handleAntiWaMe = async (Wilykun, message) => {
 
 // Fungsi untuk menampilkan daftar pengguna yang melanggar aturan
 export const listViolators = async (Wilykun, groupId) => {
-	initializeUserWarnings(groupId);
 	const groupName = (await Wilykun.groupMetadata(groupId)).subject;
 
 	let message = `Daftar pengguna yang melanggar aturan di grup ${groupName}:\n-`;

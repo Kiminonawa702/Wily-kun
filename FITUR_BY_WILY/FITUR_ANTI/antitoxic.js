@@ -1,5 +1,5 @@
 import { jidNormalizedUser } from 'baileys';
-import { retryWithDelay } from '../utils/retry.js'; // Pastikan path ini benar
+import { retryWithDelay } from '../../utils/retry.js'; // Pastikan path ini benar
 import fs from 'fs';
 import path from 'path';
 import { fileURLToPath } from 'url';
@@ -23,82 +23,120 @@ try {
 const responseMessage = 'Tolong jaga bahasa Anda! 😊 Terdeteksi menggunakan kata kasar.'; // Pesan balasan yang diperbarui
 const enableAntitoxic = process.env.ENABLE_ANTITOXIC === 'true'; // Baca nilai dari .env
 
-export async function handleToxicMessage(Wilykun, message) {
-	if (!message.message || !message.key.remoteJid) return;
+import { retry } from '../../utils/retry.js'; // Impor fungsi retry
+import { toxicWarningMessages } from '../../TEKS_PERINGATAN/teks_peringtan_antitoxic.js'; // Impor pesan peringatan
 
-	if (!enableAntitoxic) return; // Tambahkan pengecekan ini
+const DATA_FILE = './DATA/UserWarningToxic.json';
+let userToxicWarnings = {};
 
-	const text = (message.message.conversation || message.message.extendedTextMessage?.text || '').toLowerCase();
-	const containsOffensiveWord = offensiveWords.some(word => text.includes(word.toLowerCase()));
+// Memuat data pelanggaran pengguna dari file
+const loadUserToxicWarnings = () => {
+	if (fs.existsSync(DATA_FILE)) {
+		const data = fs.readFileSync(DATA_FILE, 'utf-8');
+		userToxicWarnings = JSON.parse(data);
+	}
+};
 
-	if (containsOffensiveWord) {
+// Menyimpan data pelanggaran pengguna ke file
+const saveUserToxicWarnings = () => {
+	fs.writeFileSync(DATA_FILE, JSON.stringify(userToxicWarnings, null, 2));
+};
+
+// Inisialisasi data pelanggaran pengguna
+loadUserToxicWarnings();
+
+export const handleToxicMessage = async (Wilykun, message) => {
+	if (process.env.ENABLE_ANTITOXIC !== 'true') return; // Periksa apakah fitur antitoxic diaktifkan
+
+	const text = message.message?.conversation || message.message?.extendedTextMessage?.text || '';
+	const toxicWords = offensiveWords; // Gunakan kata-kata toxic dari txt_toxic.json
+	const groupId = message.key.remoteJid;
+	const groupName = (await Wilykun.groupMetadata(groupId)).subject;
+
+	if (toxicWords.some(word => text.includes(word)) && !message.key.fromMe) {
 		try {
-			const senderJid = message.key.participant || message.key.remoteJid;
-			const profilePictureUrl = await retryWithDelay(async () => {
-				return await Wilykun.profilePictureUrl(senderJid, 'image');
-			}).catch(() => 'https://example.com/default-profile-picture.png');
+			const senderId = message.key.participant || message.key.remoteJid;
+			const profilePictureUrl = await Wilykun.profilePictureUrl(senderId, 'image').catch(() => 'https://example.com/default-profile-picture.png');
 
-			const { time: groupCreationTime, creator: groupCreator } = await getGroupCreationTime(Wilykun, message.key.remoteJid);
-			const totalAdmins = await getTotalAdmins(Wilykun, message.key.remoteJid);
-			const totalMembers = await getTotalMembers(Wilykun, message.key.remoteJid);
+			// Inisialisasi data pelanggaran untuk grup
+			if (!userToxicWarnings[groupId]) {
+				userToxicWarnings[groupId] = {};
+			}
 
-			const antitoxicMessage = `
-@${senderJid.split('@')[0]} ${responseMessage}
-━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-Grup ini dibuat pada: ${groupCreationTime} 📅
-━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-Pembuat grup: @${groupCreator.split('@')[0]} 🧑‍💼
-━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-Total admin: ${totalAdmins} 👮‍♂️
-━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-Jumlah anggota: ${totalMembers} 👨‍👩‍👧‍👦
-━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-			`;
+			// Menambah jumlah peringatan untuk pengguna
+			if (!userToxicWarnings[groupId][senderId]) {
+				userToxicWarnings[groupId][senderId] = 1;
+			} else {
+				userToxicWarnings[groupId][senderId]++;
+			}
 
-			await Wilykun.sendMessage(
-				jidNormalizedUser(message.key.remoteJid),
-				{
-					caption: antitoxicMessage,
-					mentions: [senderJid, groupCreator],
-					image: { url: profilePictureUrl },
-					contextInfo: {
-						mentionedJid: [senderJid, groupCreator],
-						forwardingScore: 100,
-						isForwarded: true,
-						forwardedMessage: true,
-						forwardedNewsletterMessageInfo: {
-							newsletterJid: '120363312297133690@newsletter',
-							newsletterName: 'Info Seputar Anime Dll 👤',
-							serverMessageId: '143'
-						}
-					}
-				},
-				{ quoted: message }
-			);
-			await retryWithDelay(async () => {
-				await Wilykun.sendMessage(jidNormalizedUser(message.key.remoteJid), { delete: message.key });
-			}, 3, 1000); // Coba ulangi 3 kali dengan delay 1 detik
-			console.log(`Pesan toxic berhasil dihapus: ${text}`);
+			// Menyimpan data pelanggaran pengguna ke file
+			saveUserToxicWarnings();
+
+			// Mendapatkan pesan peringatan yang sesuai
+			const warningIndex = Math.min(userToxicWarnings[groupId][senderId] - 1, toxicWarningMessages.length - 2);
+			const warningMessage = toxicWarningMessages[warningIndex].replace('{user}', senderId.split('@')[0]);
+
+			// Menambahkan daftar pelanggar ke pesan notifikasi
+			let violatorsMessage = `Daftar pengguna yang melanggar aturan di grup ${groupName}:\n-`;
+			let mentions = [senderId];
+
+			const sortedViolators = Object.entries(userToxicWarnings[groupId]).sort((a, b) => b[1] - a[1]);
+
+			for (const [userId, count] of sortedViolators) {
+				if (count > 0) {
+					const userName = userId.split('@')[0];
+					violatorsMessage += `\n@${userName} - ${count} pelanggaran 🚫`;
+					mentions.push(userId);
+				}
+			}
+
+			const notificationMessage = {
+				image: { url: profilePictureUrl },
+				caption: `${warningMessage}\n-\n${violatorsMessage}`,
+				mentions
+			};
+
+			await retry(() => Wilykun.sendMessage(message.key.remoteJid, notificationMessage, { quoted: message }));
+			await retry(() => Wilykun.sendMessage(message.key.remoteJid, { delete: message.key }, { quoted: message }));
+
+			// Mengeluarkan pengguna jika mereka memiliki lebih dari 10 peringatan
+			if (userToxicWarnings[groupId][senderId] > 10) {
+				await Wilykun.groupParticipantsUpdate(message.key.remoteJid, [senderId], 'remove');
+				const kickMessage = toxicWarningMessages[toxicWarningMessages.length - 1].replace('{user}', senderId.split('@')[0]);
+				await retry(() => Wilykun.sendMessage(message.key.remoteJid, { text: kickMessage }));
+				delete userToxicWarnings[groupId][senderId]; // Mengatur ulang jumlah peringatan setelah mengeluarkan
+				saveUserToxicWarnings(); // Menyimpan perubahan ke file
+			}
 		} catch (error) {
 			console.error('Gagal menghapus pesan toxic:', error);
 		}
-	} else if (message.message.extendedTextMessage?.contextInfo?.quotedMessage) {
-		// Periksa pesan yang menggunakan fitur "read more"
-		const quotedText = (message.message.extendedTextMessage.contextInfo.quotedMessage.conversation || '').toLowerCase();
-		const containsOffensiveWordInQuoted = offensiveWords.some(word => quotedText.includes(word.toLowerCase()));
+	}
+};
 
-		if (containsOffensiveWordInQuoted) {
-			try {
-				await retryWithDelay(async () => {
-					await Wilykun.sendMessage(jidNormalizedUser(message.key.remoteJid), { delete: message.key });
-				}, 3, 1000); // Coba ulangi 3 kali dengan delay 1 detik
-				console.log(`Pesan toxic dalam "read more" berhasil dihapus: ${quotedText}`);
-			} catch (error) {
-				console.error('Gagal menghapus pesan toxic dalam "read more":', error);
-			}
+// Fungsi untuk menampilkan daftar pengguna yang melanggar aturan
+export const listToxicViolators = async (Wilykun, groupId) => {
+	const groupName = (await Wilykun.groupMetadata(groupId)).subject;
+
+	let message = `Daftar pengguna yang melanggar aturan di grup ${groupName}:\n-`;
+	let mentions = [];
+
+	const sortedViolators = Object.entries(userToxicWarnings[groupId]).sort((a, b) => b[1] - a[1]);
+
+	for (const [userId, count] of sortedViolators) {
+		if (count > 0) {
+			const userName = userId.split('@')[0];
+			message += `\n@${userName} - ${count} pelanggaran 🚫`;
+			mentions.push(userId);
 		}
 	}
-}
+
+	if (mentions.length > 0) {
+		await Wilykun.sendMessage(groupId, { text: message, mentions });
+	} else {
+		await Wilykun.sendMessage(groupId, { text: 'Tidak ada pengguna yang melanggar aturan.' });
+	}
+};
 
 /**
  * Fungsi untuk mendapatkan waktu pembuatan grup.
