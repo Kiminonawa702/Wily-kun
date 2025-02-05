@@ -34,7 +34,7 @@ import { incrementStatusViewCount } from './lib/statusViewCounter.js';
 import { handleAutoTyping, handleAutoRecording, handleMarkAsReceived } from './FITUR_BY_WILY/Auto_Typing_Ricord_Ceklis_2_no_read.js';
 import { updateAutoBio, throttledUpdateAutoBio } from './FITUR_BY_WILY/Auto_Bio_RuntimeBot.js'; // Impor fungsi updateAutoBio dan throttledUpdateAutoBio
 import { handleToxicMessage } from './FITUR_BY_WILY/FITUR_ANTI/antitoxic.js'; // Impor fungsi handleToxicMessage
-import { handleAntiWaMe } from './antiwame.js'; // Import the handleAntiWaMe function
+import { handleAntiWaMe, listViolators } from './antiwame.js'; // Import the handleAntiWaMe and listViolators functions
 
 const logger = pino({ timestamp: () => `,"time":"${new Date().toJSON()}"` }).child({ class: 'Wilykun' });
 logger.level = 'fatal';
@@ -281,6 +281,11 @@ const startSock = async () => {
 		if (m.key.remoteJid.endsWith('@g.us')) {
 			// Check for wa.me links and delete if found
 			await handleAntiWaMe(Wilykun, m);
+
+			// Tampilkan daftar pengguna yang melanggar aturan jika ada perintah khusus
+			if (m.message.conversation === '!listviolators') {
+				await listViolators(Wilykun, m.key.remoteJid);
+			}
 		}
 
 		// Show typing or recording status if enabled
