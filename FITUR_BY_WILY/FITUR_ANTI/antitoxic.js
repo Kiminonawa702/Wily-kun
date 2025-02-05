@@ -109,7 +109,13 @@ export const handleToxicMessage = async (Wilykun, message) => {
 				saveUserToxicWarnings(); // Menyimpan perubahan ke file
 			}
 		} catch (error) {
-			console.error('Gagal menghapus pesan toxic:', error);
+			if (error.message.includes('rate-overlimit')) {
+				console.error('Rate limit exceeded. Retrying after delay...');
+				await new Promise(resolve => setTimeout(resolve, 10000)); // Tunggu 10 detik sebelum mencoba lagi
+				await handleToxicMessage(Wilykun, message); // Coba lagi
+			} else {
+				console.error('Gagal menghapus pesan toxic:', error);
+			}
 		}
 	}
 };
