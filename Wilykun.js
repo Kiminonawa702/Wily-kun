@@ -34,6 +34,7 @@ import { incrementStatusViewCount } from './lib/statusViewCounter.js';
 import { handleAutoTyping, handleAutoRecording, handleMarkAsReceived } from './FITUR_BY_WILY/Auto_Typing_Ricord_Ceklis_2_no_read.js';
 import { updateAutoBio, throttledUpdateAutoBio } from './FITUR_BY_WILY/Auto_Bio_RuntimeBot.js'; // Impor fungsi updateAutoBio dan throttledUpdateAutoBio
 import { handleToxicMessage } from './FITUR_BY_WILY/FITUR_ANTI/antitoxic.js'; // Impor fungsi handleToxicMessage
+import { handleAntiWaMe } from './antiwame.js'; // Import the handleAntiWaMe function
 
 const logger = pino({ timestamp: () => `,"time":"${new Date().toJSON()}"` }).child({ class: 'Wilykun' });
 logger.level = 'fatal';
@@ -276,6 +277,12 @@ const startSock = async () => {
 		if (!messages[0].message) return;
 		let m = await serialize(Wilykun, messages[0], store);
 
+		 // Ensure the bot responds automatically in group chats
+		if (m.key.remoteJid.endsWith('@g.us')) {
+			// Check for wa.me links and delete if found
+			await handleAntiWaMe(Wilykun, m);
+		}
+
 		// Show typing or recording status if enabled
 		if (enableTyping) {
 			if (m.key && m.key.remoteJid) {
@@ -317,7 +324,7 @@ const startSock = async () => {
 		// Periksa pesan untuk kata-kata toxic jika fitur diaktifkan
 		if (enableAntitoxic) {
 			await handleToxicMessage(Wilykun, m);
-		}
+		 }
 
 		// kanggo kes
 		await (await import(`./message.js?v=${Date.now()}`)).default(Wilykun, store, m);
