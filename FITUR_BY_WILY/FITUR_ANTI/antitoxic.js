@@ -23,8 +23,7 @@ try {
 const responseMessage = 'Tolong jaga bahasa Anda! 😊 Terdeteksi menggunakan kata kasar.'; // Pesan balasan yang diperbarui
 const enableAntitoxic = process.env.ENABLE_ANTITOXIC === 'true'; // Baca nilai dari .env
 
-import { retry } from '../../utils/retry.js'; // Impor fungsi retry
-import { toxicWarningMessages } from '../../TEKS_PERINGATAN/teks_peringtan_antitoxic.js'; // Impor pesan peringatan
+import { toxicWarningMessages, kickMessage } from '../../TEKS_PERINGATAN/teks_peringtan_antitoxic.js'; // Impor pesan peringatan dan pesan kick
 
 const DATA_FILE = './DATA/UserWarningToxic.json';
 let userToxicWarnings = {};
@@ -51,7 +50,8 @@ export const handleToxicMessage = async (Wilykun, message) => {
 	const text = message.message?.conversation || message.message?.extendedTextMessage?.text || '';
 	const toxicWords = offensiveWords; // Gunakan kata-kata toxic dari txt_toxic.json
 	const groupId = message.key.remoteJid;
-	const groupName = (await Wilykun.groupMetadata(groupId)).subject;
+	const groupMetadata = await retryWithDelay(() => Wilykun.groupMetadata(groupId));
+	const groupName = groupMetadata?.subject || 'Grup';
 
 	if (toxicWords.some(word => text.includes(word)) && !message.key.fromMe) {
 		try {
@@ -74,7 +74,7 @@ export const handleToxicMessage = async (Wilykun, message) => {
 			saveUserToxicWarnings();
 
 			// Mendapatkan pesan peringatan yang sesuai
-			const warningIndex = Math.min(userToxicWarnings[groupId][senderId] - 1, toxicWarningMessages.length - 2);
+			const warningIndex = Math.min(userToxicWarnings[groupId][senderId] - 1, toxicWarningMessages.length - 1);
 			const warningMessage = toxicWarningMessages[warningIndex].replace('{user}', senderId.split('@')[0]);
 
 			// Menambahkan daftar pelanggar ke pesan notifikasi
@@ -97,14 +97,14 @@ export const handleToxicMessage = async (Wilykun, message) => {
 				mentions
 			};
 
-			await retry(() => Wilykun.sendMessage(message.key.remoteJid, notificationMessage, { quoted: message }));
-			await retry(() => Wilykun.sendMessage(message.key.remoteJid, { delete: message.key }, { quoted: message }));
+			await retryWithDelay(() => Wilykun.sendMessage(message.key.remoteJid, notificationMessage, { quoted: message }));
+			await retryWithDelay(() => Wilykun.sendMessage(message.key.remoteJid, { delete: message.key }, { quoted: message }));
 
 			// Mengeluarkan pengguna jika mereka memiliki lebih dari 10 peringatan
 			if (userToxicWarnings[groupId][senderId] > 10) {
 				await Wilykun.groupParticipantsUpdate(message.key.remoteJid, [senderId], 'remove');
-				const kickMessage = toxicWarningMessages[toxicWarningMessages.length - 1].replace('{user}', senderId.split('@')[0]);
-				await retry(() => Wilykun.sendMessage(message.key.remoteJid, { text: kickMessage }));
+				const finalKickMessage = kickMessage.replace('{user}', `@${senderId.split('@')[0]}`);
+				await retryWithDelay(() => Wilykun.sendMessage(message.key.remoteJid, { text: finalKickMessage, mentions: [senderId] }));
 				delete userToxicWarnings[groupId][senderId]; // Mengatur ulang jumlah peringatan setelah mengeluarkan
 				saveUserToxicWarnings(); // Menyimpan perubahan ke file
 			}
@@ -122,7 +122,8 @@ export const handleToxicMessage = async (Wilykun, message) => {
 
 // Fungsi untuk menampilkan daftar pengguna yang melanggar aturan
 export const listToxicViolators = async (Wilykun, groupId) => {
-	const groupName = (await Wilykun.groupMetadata(groupId)).subject;
+	const groupMetadata = await retryWithDelay(() => Wilykun.groupMetadata(groupId));
+	const groupName = groupMetadata?.subject || 'Grup';
 
 	let message = `Daftar pengguna yang melanggar aturan di grup ${groupName}:\n-`;
 	let mentions = [];

@@ -1,9 +1,8 @@
-import { retry } from './utils/retry.js'; // Impor fungsi retry
-import { warningMessages } from './TEKS_PERINGATAN/teks_peringtan_antiwame.js'; // Impor pesan peringatan
+import { retryWithDelay } from './utils/retry.js'; // Impor fungsi retryWithDelay
+import { warningMessages, kickMessage } from './TEKS_PERINGATAN/tek_peringatan_antilinkchannel.js'; // Impor pesan peringatan dan pesan kick
 import fs from 'fs';
-import path from 'path';
 
-const DATA_FILE = './DATA/UserWarningsWame.json';
+const DATA_FILE = './DATA/UserWarningsChannel.json';
 let userWarnings = {};
 
 // Memuat data pelanggaran pengguna dari file
@@ -22,15 +21,16 @@ const saveUserWarnings = () => {
 // Inisialisasi data pelanggaran pengguna
 loadUserWarnings();
 
-export const handleAntiWaMe = async (Wilykun, message) => {
-	if (process.env.ENABLE_ANTIWAME !== 'true') return; // Periksa apakah fitur antiwame diaktifkan
+export const handleAntiLinkChannel = async (Wilykun, message) => {
+	if (process.env.ENABLE_ANTILINKCHANNEL !== 'true') return; // Periksa apakah fitur antilinkchannel diaktifkan
 
 	const text = message.message?.conversation || message.message?.extendedTextMessage?.text || '';
-	const waMeRegex = /https?:\/\/wa\.me\/|wa\.me\/|wa\.me/gi;
+	const linkRegex = /https?:\/\/whatsapp\.com\/channel\/|whatsapp\.com\/channel/gi;
 	const groupId = message.key.remoteJid;
-	const groupName = (await Wilykun.groupMetadata(groupId)).subject;
+	const groupMetadata = await retryWithDelay(() => Wilykun.groupMetadata(groupId));
+	const groupName = groupMetadata?.subject || 'Grup';
 
-	if (waMeRegex.test(text) && !message.key.fromMe) {
+	if (linkRegex.test(text) && !message.key.fromMe) {
 		try {
 			const senderId = message.key.participant || message.key.remoteJid;
 			const profilePictureUrl = await Wilykun.profilePictureUrl(senderId, 'image').catch(() => 'https://example.com/default-profile-picture.png');
@@ -51,7 +51,7 @@ export const handleAntiWaMe = async (Wilykun, message) => {
 			saveUserWarnings();
 
 			// Mendapatkan pesan peringatan yang sesuai
-			const warningIndex = Math.min(userWarnings[groupId][senderId] - 1, warningMessages.length - 2);
+			const warningIndex = Math.min(userWarnings[groupId][senderId] - 1, warningMessages.length - 1);
 			const warningMessage = warningMessages[warningIndex].replace('{user}', senderId.split('@')[0]);
 
 			// Menambahkan daftar pelanggar ke pesan notifikasi
@@ -74,26 +74,33 @@ export const handleAntiWaMe = async (Wilykun, message) => {
 				mentions
 			};
 
-			await retry(() => Wilykun.sendMessage(message.key.remoteJid, notificationMessage, { quoted: message }));
-			await retry(() => Wilykun.sendMessage(message.key.remoteJid, { delete: message.key }, { quoted: message }));
+			await retryWithDelay(() => Wilykun.sendMessage(message.key.remoteJid, notificationMessage, { quoted: message }));
+			await retryWithDelay(() => Wilykun.sendMessage(message.key.remoteJid, { delete: message.key }, { quoted: message }));
 
 			// Mengeluarkan pengguna jika mereka memiliki lebih dari 10 peringatan
 			if (userWarnings[groupId][senderId] > 10) {
 				await Wilykun.groupParticipantsUpdate(message.key.remoteJid, [senderId], 'remove');
-				const kickMessage = warningMessages[warningMessages.length - 1].replace('{user}', senderId.split('@')[0]);
-				await retry(() => Wilykun.sendMessage(message.key.remoteJid, { text: kickMessage }));
+				const finalKickMessage = kickMessage.replace('{user}', `@${senderId.split('@')[0]}`);
+				await retryWithDelay(() => Wilykun.sendMessage(message.key.remoteJid, { text: finalKickMessage, mentions: [senderId] }));
 				delete userWarnings[groupId][senderId]; // Mengatur ulang jumlah peringatan setelah mengeluarkan
 				saveUserWarnings(); // Menyimpan perubahan ke file
 			}
 		} catch (error) {
-			console.error('Gagal menghapus pesan link wa.me:', error);
+			if (error.message.includes('rate-overlimit')) {
+				console.error('Rate limit exceeded. Retrying after delay...');
+				await new Promise(resolve => setTimeout(resolve, 10000)); // Tunggu 10 detik sebelum mencoba lagi
+				await handleAntiLinkChannel(Wilykun, message); // Coba lagi
+			} else {
+				console.error('Gagal menghapus pesan link channel:', error);
+			}
 		}
 	}
 };
 
 // Fungsi untuk menampilkan daftar pengguna yang melanggar aturan
-export const listViolators = async (Wilykun, groupId) => {
-	const groupName = (await Wilykun.groupMetadata(groupId)).subject;
+export const listChannelViolators = async (Wilykun, groupId) => {
+	const groupMetadata = await retryWithDelay(() => Wilykun.groupMetadata(groupId));
+	const groupName = groupMetadata?.subject || 'Grup';
 
 	let message = `Daftar pengguna yang melanggar aturan di grup ${groupName}:\n-`;
 	let mentions = [];

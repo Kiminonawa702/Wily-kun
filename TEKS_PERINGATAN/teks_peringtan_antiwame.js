@@ -8,6 +8,7 @@ export const warningMessages = [
 	"(7) @{user} ❗ Link wa.me tidak boleh di sini! 😬",
 	"(8) @{user} ⚠️ Link wa.me terdeteksi, jangan kirim lagi! 😒",
 	"(9) @{user} 🚷 Link wa.me tidak diperbolehkan, hapus sekarang! 😤",
-	"(10) @{user} 🛑 Link wa.me terdeteksi, akan dihapus segera! 😎 Ini yang terakhir, mohon patuhi aturan! Kalau masih mengirim, bot akan mengkick kamu.",
-	"@{user} telah dikick dari grup karena melanggar aturan dengan mengirim link wa.me lebih dari 10 kali. 🚫"
+	"(10) @{user} 🛑 Link wa.me terdeteksi, akan dihapus segera! 😎 Ini yang terakhir, mohon patuhi aturan! Kalau masih mengirim, bot akan mengkick kamu."
 ];
+
+export const kickMessage = "@{user} telah dikick dari grup karena melanggar aturan dengan mengirim link wa.me lebih dari 10 kali. 🚫";

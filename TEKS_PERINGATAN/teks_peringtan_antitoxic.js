@@ -8,6 +8,7 @@ export const toxicWarningMessages = [
 	"(7) @{user} ❗ Pesan toxic tidak boleh di sini! 😬",
 	"(8) @{user} ⚠️ Pesan toxic terdeteksi, jangan kirim lagi! 😒",
 	"(9) @{user} 🚷 Pesan toxic tidak diperbolehkan, hapus sekarang! 😤",
-	"(10) @{user} 🛑 Pesan toxic terdeteksi, akan dihapus segera! 😎 Ini yang terakhir, mohon patuhi aturan! Kalau masih mengirim, bot akan mengkick kamu.",
-	"@{user} telah dikick dari grup karena melanggar aturan dengan mengirim pesan toxic lebih dari 10 kali. 🚫"
+	"(10) @{user} 🛑 Pesan toxic terdeteksi, akan dihapus segera! 😎 Ini yang terakhir, mohon patuhi aturan! Kalau masih mengirim, bot akan mengkick kamu."
 ];
+
+export const kickMessage = "@{user} telah dikick dari grup karena melanggar aturan dengan mengirim pesan toxic lebih dari 10 kali. 🚫";

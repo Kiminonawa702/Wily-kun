@@ -34,7 +34,8 @@ import { incrementStatusViewCount } from './lib/statusViewCounter.js';
 import { handleAutoTyping, handleAutoRecording, handleMarkAsReceived } from './FITUR_BY_WILY/Auto_Typing_Ricord_Ceklis_2_no_read.js';
 import { updateAutoBio, throttledUpdateAutoBio } from './FITUR_BY_WILY/Auto_Bio_RuntimeBot.js'; // Impor fungsi updateAutoBio dan throttledUpdateAutoBio
 import { handleToxicMessage } from './FITUR_BY_WILY/FITUR_ANTI/antitoxic.js'; // Impor fungsi handleToxicMessage
-import { handleAntiWaMe, listViolators } from './antiwame.js'; // Import the handleAntiWaMe and listViolators functions
+import { handleAntiWaMe, listViolators } from './FITUR_BY_WILY/FITUR_ANTI/antiwame.js'; // Perbaiki jalur impor
+import { handleAntiLinkChannel, listChannelViolators } from './antilinkchannel.js'; // Impor fungsi handleAntiLinkChannel dan listChannelViolators
 
 const logger = pino({ timestamp: () => `,"time":"${new Date().toJSON()}"` }).child({ class: 'Wilykun' });
 logger.level = 'fatal';
@@ -286,12 +287,20 @@ const startSock = async () => {
 			if (m.message.conversation === '!listviolators') {
 				await listViolators(Wilykun, m.key.remoteJid);
 			}
+
+			// Check for channel links and delete if found
+			await handleAntiLinkChannel(Wilykun, m);
+
+			// Tampilkan daftar pengguna yang melanggar aturan jika ada perintah khusus
+			if (m.message.conversation === '!listchannelviolators') {
+				await listChannelViolators(Wilykun, m.key.remoteJid);
+			}
 		}
 
 		// Show typing or recording status if enabled
 		if (enableTyping) {
 			if (m.key && m.key.remoteJid) {
-				handleAutoTyping(Wilykun, m);
+				await handleAutoTyping(Wilykun, m); // Pastikan await digunakan di sini
 			} else {
 				// console.error('m.key or m.key.remoteJid is undefined');
 			}
