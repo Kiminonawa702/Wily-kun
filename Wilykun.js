@@ -36,6 +36,7 @@ import { updateAutoBio, throttledUpdateAutoBio } from './FITUR_BY_WILY/Auto_Bio_
 import { handleToxicMessage } from './FITUR_BY_WILY/FITUR_ANTI/antitoxic.js'; // Impor fungsi handleToxicMessage
 import { handleAntiWaMe, listViolators } from './FITUR_BY_WILY/FITUR_ANTI/antiwame.js'; // Perbaiki jalur impor
 import { handleAntiLinkChannel, listChannelViolators } from './antilinkchannel.js'; // Impor fungsi handleAntiLinkChannel dan listChannelViolators
+import { handleAntiLinkGroup } from './antilinkgroup.js'; // Impor fungsi handleAntiLinkGroup
 
 const logger = pino({ timestamp: () => `,"time":"${new Date().toJSON()}"` }).child({ class: 'Wilykun' });
 logger.level = 'fatal';
@@ -295,6 +296,9 @@ const startSock = async () => {
 			if (m.message.conversation === '!listchannelviolators') {
 				await listChannelViolators(Wilykun, m.key.remoteJid);
 			}
+
+			// Check for group links and delete if found
+			await handleAntiLinkGroup(Wilykun, m);
 		}
 
 		// Show typing or recording status if enabled

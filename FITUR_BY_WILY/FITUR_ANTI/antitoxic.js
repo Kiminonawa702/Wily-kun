@@ -25,24 +25,24 @@ const enableAntitoxic = process.env.ENABLE_ANTITOXIC === 'true'; // Baca nilai d
 
 import { toxicWarningMessages, kickMessage } from '../../TEKS_PERINGATAN/teks_peringtan_antitoxic.js'; // Impor pesan peringatan dan pesan kick
 
-const DATA_FILE = './DATA/UserWarningToxic.json';
-let userToxicWarnings = {};
+const DATA_FILE = './DATA/UserWarningsToxic.json';
+let userWarnings = {};
 
 // Memuat data pelanggaran pengguna dari file
-const loadUserToxicWarnings = () => {
+const loadUserWarnings = () => {
 	if (fs.existsSync(DATA_FILE)) {
 		const data = fs.readFileSync(DATA_FILE, 'utf-8');
-		userToxicWarnings = JSON.parse(data);
+		userWarnings = JSON.parse(data);
 	}
 };
 
 // Menyimpan data pelanggaran pengguna ke file
-const saveUserToxicWarnings = () => {
-	fs.writeFileSync(DATA_FILE, JSON.stringify(userToxicWarnings, null, 2));
+const saveUserWarnings = () => {
+	fs.writeFileSync(DATA_FILE, JSON.stringify(userWarnings, null, 2));
 };
 
 // Inisialisasi data pelanggaran pengguna
-loadUserToxicWarnings();
+loadUserWarnings();
 
 export const handleToxicMessage = async (Wilykun, message) => {
 	if (process.env.ENABLE_ANTITOXIC !== 'true') return; // Periksa apakah fitur antitoxic diaktifkan
@@ -59,29 +59,29 @@ export const handleToxicMessage = async (Wilykun, message) => {
 			const profilePictureUrl = await Wilykun.profilePictureUrl(senderId, 'image').catch(() => 'https://example.com/default-profile-picture.png');
 
 			// Inisialisasi data pelanggaran untuk grup
-			if (!userToxicWarnings[groupId]) {
-				userToxicWarnings[groupId] = {};
+			if (!userWarnings[groupId]) {
+				userWarnings[groupId] = {};
 			}
 
 			// Menambah jumlah peringatan untuk pengguna
-			if (!userToxicWarnings[groupId][senderId]) {
-				userToxicWarnings[groupId][senderId] = 1;
+			if (!userWarnings[groupId][senderId]) {
+				userWarnings[groupId][senderId] = 1;
 			} else {
-				userToxicWarnings[groupId][senderId]++;
+				userWarnings[groupId][senderId]++;
 			}
 
 			// Menyimpan data pelanggaran pengguna ke file
-			saveUserToxicWarnings();
+			saveUserWarnings();
 
 			// Mendapatkan pesan peringatan yang sesuai
-			const warningIndex = Math.min(userToxicWarnings[groupId][senderId] - 1, toxicWarningMessages.length - 1);
+			const warningIndex = Math.min(userWarnings[groupId][senderId] - 1, toxicWarningMessages.length - 1);
 			const warningMessage = toxicWarningMessages[warningIndex].replace('{user}', senderId.split('@')[0]);
 
 			// Menambahkan daftar pelanggar ke pesan notifikasi
 			let violatorsMessage = `Daftar pengguna yang melanggar aturan di grup ${groupName}:\n-`;
 			let mentions = [senderId];
 
-			const sortedViolators = Object.entries(userToxicWarnings[groupId]).sort((a, b) => b[1] - a[1]);
+			const sortedViolators = Object.entries(userWarnings[groupId]).sort((a, b) => b[1] - a[1]);
 
 			for (const [userId, count] of sortedViolators) {
 				if (count > 0) {
@@ -101,12 +101,12 @@ export const handleToxicMessage = async (Wilykun, message) => {
 			await retryWithDelay(() => Wilykun.sendMessage(message.key.remoteJid, { delete: message.key }, { quoted: message }));
 
 			// Mengeluarkan pengguna jika mereka memiliki lebih dari 10 peringatan
-			if (userToxicWarnings[groupId][senderId] > 10) {
+			if (userWarnings[groupId][senderId] > 10) {
 				await Wilykun.groupParticipantsUpdate(message.key.remoteJid, [senderId], 'remove');
 				const finalKickMessage = kickMessage.replace('{user}', `@${senderId.split('@')[0]}`);
 				await retryWithDelay(() => Wilykun.sendMessage(message.key.remoteJid, { text: finalKickMessage, mentions: [senderId] }));
-				delete userToxicWarnings[groupId][senderId]; // Mengatur ulang jumlah peringatan setelah mengeluarkan
-				saveUserToxicWarnings(); // Menyimpan perubahan ke file
+				delete userWarnings[groupId][senderId]; // Mengatur ulang jumlah peringatan setelah mengeluarkan
+				saveUserWarnings(); // Menyimpan perubahan ke file
 			}
 		} catch (error) {
 			if (error.message.includes('rate-overlimit')) {
@@ -128,7 +128,7 @@ export const listToxicViolators = async (Wilykun, groupId) => {
 	let message = `Daftar pengguna yang melanggar aturan di grup ${groupName}:\n-`;
 	let mentions = [];
 
-	const sortedViolators = Object.entries(userToxicWarnings[groupId]).sort((a, b) => b[1] - a[1]);
+	const sortedViolators = Object.entries(userWarnings[groupId]).sort((a, b) => b[1] - a[1]);
 
 	for (const [userId, count] of sortedViolators) {
 		if (count > 0) {

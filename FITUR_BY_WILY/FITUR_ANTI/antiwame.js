@@ -87,7 +87,13 @@ export const handleAntiWaMe = async (Wilykun, message) => {
 				saveUserWarnings(); // Menyimpan perubahan ke file
 			}
 		} catch (error) {
-			console.error('Gagal menghapus pesan link wa.me:', error);
+			if (error.message.includes('rate-overlimit')) {
+				console.error('Rate limit exceeded. Retrying after delay...');
+				await new Promise(resolve => setTimeout(resolve, 10000)); // Tunggu 10 detik sebelum mencoba lagi
+				await handleAntiWaMe(Wilykun, message); // Coba lagi
+			} else {
+				console.error('Gagal menghapus pesan link wa.me:', error);
+			}
 		}
 	}
 };
