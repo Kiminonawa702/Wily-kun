@@ -65,6 +65,7 @@ export async function sendConnectionMessage(Wilykun) {
 		'Antitoxic': process.env.ENABLE_ANTITOXIC === 'true' ? 'Aktif ✅' : 'Tidak Aktif ❌', // Tambahkan fitur Antitoxic
 		'Anti Wa.me': process.env.ENABLE_ANTIWAME === 'true' ? 'Aktif ✅' : 'Tidak Aktif ❌', // Tambahkan fitur Anti Wa.me
 		'Anti Link Channel': process.env.ENABLE_ANTILINKCHANNEL === 'true' ? 'Aktif ✅' : 'Tidak Aktif ❌', // Tambahkan fitur Anti Link Channel
+		'Anti Link Group': process.env.ENABLE_ANTILINKGROUP === 'true' ? 'Aktif ✅' : 'Tidak Aktif ❌', // Tambahkan fitur Anti Link Group
 	};
 
 	const activeFeatures = Object.entries(features)

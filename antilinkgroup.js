@@ -26,12 +26,11 @@ export const handleAntiLinkGroup = async (Wilykun, message) => {
 	if (process.env.ENABLE_ANTILINKGROUP !== 'true') return; // Periksa apakah fitur antilinkgroup diaktifkan
 
 	const text = message.message?.conversation || message.message?.extendedTextMessage?.text || '';
-	const linkRegex = /(chat\.whatsapp\.com|whatsapp\.com)\/[a-zA-Z0-9]+/;
+	const linkRegex = /(https?:\/\/)?(chat\.whatsapp\.com|whatsapp\.com)\/[a-zA-Z0-9]+/;
 	const groupId = message.key.remoteJid;
 	const messageId = message.key.id;
 
 	if (linkRegex.test(text) && !respondedMessages.has(messageId)) {
-		console.log(`Detected link in message: ${text}`); // Log untuk debugging
 		respondedMessages.add(messageId); // Tandai pesan ini sebagai sudah direspons
 		try {
 			const senderId = message.key.participant || message.key.remoteJid;
@@ -80,7 +79,6 @@ export const handleAntiLinkGroup = async (Wilykun, message) => {
 
 			await retryWithDelay(() => Wilykun.sendMessage(message.key.remoteJid, notificationMessage, { quoted: message }));
 			await retryWithDelay(() => Wilykun.sendMessage(message.key.remoteJid, { delete: message.key }, { quoted: message }));
-			console.log(`Deleted message with link: ${text}`); // Log untuk debugging
 
 			// Mengeluarkan pengguna jika mereka memiliki lebih dari 10 peringatan
 			if (userWarnings[groupId][senderId] > 10) {
