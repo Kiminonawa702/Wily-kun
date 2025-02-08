@@ -1,4 +1,9 @@
 import 'dotenv/config';
+import path from 'path';
+import { config } from 'dotenv'; // Tambahkan impor ini
+
+// Perbarui jalur untuk memuat file .env dari folder PENGATURAN
+config({ path: path.resolve(process.cwd(), 'PENGATURAN/.env') });
 
 import makeWASocket, {
 	delay,
@@ -395,6 +400,20 @@ const startSock = async () => {
 
 	process.on('uncaughtException', console.error);
 	process.on('unhandledRejection', console.error);
+
+	// Tambahkan logika untuk menangani uncaughtException
+	if (process.env.ENABLE_UNCAUGHT_EXCEPTION_HANDLER === 'true') {
+		process.on('uncaughtException', function (err) {
+			let e = String(err);
+			if (e.includes("Socket connection timeout")) return;
+			if (e.includes("item-not-found")) return;
+			if (e.includes("rate-overlimit")) return;
+			if (e.includes("Connection Closed")) return;
+			if (e.includes("Timed Out")) return;
+			if (e.includes("Value not found")) return;
+			console.log('Caught exception: ', err);
+		});
+	}
 };
 
 /**

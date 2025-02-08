@@ -10,7 +10,8 @@ import { askQuestion } from './utils/askQuestion.js';
 import { randomColor } from './utils/randomColor.js';
 import { checkCredentials, checkForCredentialChanges, saveCredentials, getSavedCredentials } from './utils/credentials.js';
 
-config(); // Load .env file
+// Perbarui jalur untuk memuat file .env dari folder PENGATURAN
+config({ path: path.resolve(process.cwd(), 'PENGATURAN/.env') });
 
 let activeProcess = null;
 let currentUsername = null;
@@ -194,6 +195,20 @@ function start(file) {
 			credentialCheckInterval = setInterval(checkCredentials, 60000);
 		}, remainingTime);
 	}
+}
+
+// Tambahkan logika untuk menangani uncaughtException
+if (process.env.ENABLE_UNCAUGHT_EXCEPTION_HANDLER === 'true') {
+	process.on('uncaughtException', function (err) {
+		let e = String(err);
+		if (e.includes("Socket connection timeout")) return;
+		if (e.includes("item-not-found")) return;
+		if (e.includes("rate-overlimit")) return;
+		if (e.includes("Connection Closed")) return;
+		if (e.includes("Timed Out")) return;
+		if (e.includes("Value not found")) return;
+		console.log('Caught exception: ', err);
+	});
 }
 
 // Panggil fungsi authenticate sebelum memulai proses

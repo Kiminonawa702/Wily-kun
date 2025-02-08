@@ -1,0 +1,103 @@
+# Recode By Wilykun, menggunakan script dari Bang DikaArdnt
+# Link: https://github.com/DikaArdnt/readsw.git
+# Maaf script ini saya enc untuk menghindari sc ini dijual yang udah gue edit :V
+#####################################################################################################
+# Sosial Media:
+# Telegram: https://t.me/Wilykun 📱
+# WhatsApp: https://wa.me/6285815663170 📞
+#####################################################################################################
+
+# AUTO_UPDATE
+# Mengaktifkan atau menonaktifkan pembaruan otomatis
+# true: Mengaktifkan pembaruan otomatis
+# false: Menonaktifkan pembaruan otomatis
+
+# ENABLE_TYPING
+# Mengaktifkan atau menonaktifkan fitur mengetik otomatis
+# true: Mengaktifkan fitur mengetik otomatis
+# false: Menonaktifkan fitur mengetik otomatis
+
+# ENABLE_RECORDING
+# Mengaktifkan atau menonaktifkan fitur merekam otomatis
+# true: Mengaktifkan fitur merekam otomatis
+# false: Menonaktifkan fitur merekam otomatis
+
+# MARK_AS_RECEIVED
+# Mengaktifkan atau menonaktifkan fitur menandai pesan sebagai telah diterima
+# true: Mengaktifkan fitur menandai pesan sebagai telah diterima
+# false: Menonaktifkan fitur menandai pesan sebagai telah diterima
+
+# ENABLE_AUTO_BIO
+# Mengaktifkan atau menonaktifkan fitur bio otomatis
+# true: Mengaktifkan fitur bio otomatis
+# false: Menonaktifkan fitur bio otomatis
+
+# ENABLE_EMOJI_REACTION
+# Mengaktifkan atau menonaktifkan fitur reaksi emoji pada status
+# true: Mengaktifkan fitur reaksi emoji
+# false: Menonaktifkan fitur reaksi emoji
+
+# SELF
+# Mengaktifkan atau menonaktifkan mode pribadi
+# true: Mengaktifkan mode pribadi
+# false: Menonaktifkan mode pribadi
+
+# WRITE_STORE
+# Mengaktifkan atau menonaktifkan penyimpanan data
+# true: Mengaktifkan penyimpanan data
+# false: Menonaktifkan penyimpanan data
+
+# ENABLE_WELCOME
+# Mengaktifkan atau menonaktifkan fitur welcome
+# true: Mengaktifkan fitur welcome
+# false: Menonaktifkan fitur welcome
+
+# ENABLE_GOODBYE
+# Mengaktifkan atau menonaktifkan fitur goodbye
+# true: Mengaktifkan fitur goodbye
+# false: Menonaktifkan fitur goodbye
+
+# ENABLE_NAME_CHANGE_NOTIFICATION
+# Mengaktifkan atau menonaktifkan fitur notifikasi perubahan nama grup
+# true: Mengaktifkan fitur notifikasi perubahan nama grup
+# false: Menonaktifkan fitur notifikasi perubahan nama grup
+
+# ENABLE_DESCRIPTION_CHANGE_NOTIFICATION
+# Mengaktifkan atau menonaktifkan fitur notifikasi perubahan deskripsi grup
+# true: Mengaktifkan fitur notifikasi perubahan deskripsi grup
+# false: Menonaktifkan fitur notifikasi perubahan deskripsi grup
+
+# ENABLE_PERMISSION_CHANGE_NOTIFICATION
+# Mengaktifkan atau menonaktifkan fitur notifikasi perubahan izin grup
+# true: Mengaktifkan fitur notifikasi perubahan izin grup
+# false: Menonaktifkan fitur notifikasi perubahan izin grup
+
+# ENABLE_PROMOTION_DEMOTION
+# Mengaktifkan atau menonaktifkan fitur promosi dan demosi admin
+# true: Mengaktifkan fitur promosi dan demosi admin
+# false: Menonaktifkan fitur promosi dan demosi admin
+
+# ENABLE_ANTITOXIC
+# Mengaktifkan atau menonaktifkan fitur antitoxic
+# true: Mengaktifkan fitur antitoxic
+# false: Menonaktifkan fitur antitoxic
+
+# ENABLE_ANTIWAME
+# Mengaktifkan atau menonaktifkan fitur anti wa.me
+# true: Mengaktifkan fitur anti wa.me
+# false: Menonaktifkan fitur anti wa.me
+
+# ENABLE_ANTILINKCHANNEL
+# Mengaktifkan atau menonaktifkan fitur anti link channel
+# true: Mengaktifkan fitur anti link channel
+# false: Menonaktifkan fitur anti link channel
+
+# ENABLE_ANTILINKGROUP
+# Mengaktifkan atau menonaktifkan fitur anti link group
+# true: Mengaktifkan fitur anti link group
+# false: Menonaktifkan fitur anti link group
+
+# ENABLE_UNCAUGHT_EXCEPTION_HANDLER
+# Mengaktifkan atau menonaktifkan uncaughtException handler
+# true: Mengaktifkan uncaughtException handler
+# false: Menonaktifkan uncaughtException handler
